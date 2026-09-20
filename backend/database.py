@@ -6,14 +6,28 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+MONGODB_URI = (
+    os.getenv("MONGODB_URI")
+    or os.getenv("MONGODB_URL")
+    or os.getenv("DATABASE_URL")
+    or "mongodb://localhost:27017"
+)
 DATABASE_NAME = os.getenv("DATABASE_NAME", "roadtask_db")
 COLLECTION_NAME = "projects"
-DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
+
+# Vercel serverless environment has read-only filesystem except /tmp
+if os.getenv("VERCEL"):
+    DATA_DIR = os.getenv("DATA_DIR", "/tmp/data")
+else:
+    DATA_DIR = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "data"))
+
 FILE_STORE_PATH = os.path.join(DATA_DIR, "projects.json")
 
 # Ensure local data directory exists for fallback
-os.makedirs(DATA_DIR, exist_ok=True)
+try:
+    os.makedirs(DATA_DIR, exist_ok=True)
+except Exception:
+    pass
 
 class DatabaseAdapter:
     def __init__(self):

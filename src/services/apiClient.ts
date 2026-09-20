@@ -23,7 +23,16 @@ export interface ApiHealthResponse {
 }
 
 const STORAGE_API_KEY = 'roadtask_custom_api_url';
-const DEFAULT_API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000/api';
+
+export function getDefaultApiUrl(): string {
+  if ((import.meta as any).env?.VITE_API_URL) {
+    return (import.meta as any).env.VITE_API_URL;
+  }
+  if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return `${window.location.origin}/api`;
+  }
+  return 'http://localhost:8000/api';
+}
 
 export function getApiBaseUrl(): string {
   try {
@@ -34,12 +43,12 @@ export function getApiBaseUrl(): string {
   } catch {
     // Fallback
   }
-  return DEFAULT_API_URL.replace(/\/+$/, '');
+  return getDefaultApiUrl().replace(/\/+$/, '');
 }
 
 export function setApiBaseUrl(url: string) {
   try {
-    if (!url || !url.trim() || url.trim() === DEFAULT_API_URL) {
+    if (!url || !url.trim() || url.trim() === getDefaultApiUrl()) {
       localStorage.removeItem(STORAGE_API_KEY);
     } else {
       localStorage.setItem(STORAGE_API_KEY, url.trim().replace(/\/+$/, ''));
