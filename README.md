@@ -1,159 +1,183 @@
-# Vanguard Gantt Studio
+# RoadTask Studio
 
-> **Estúdio Executivo & Touch-First de Roadmaps e Cronogramas de Engenharia**  
-> *Projete roadmaps em segundos, simule impactos ao vivo e encante clientes C-Level em reuniões presenciais.*
+> **Executive Timeline & Gantt Engine**  
+> *Projete roadmaps em segundos, simule impactos ao vivo, sincronize na nuvem ou salve nativamente no Windows.*
 
 ---
 
 ## 🌟 Visão Geral
 
-O **Vanguard Gantt Studio** foi concebido para libertar engenheiros de soluções, arquitetos de sistemas e gestores técnicos da burocracia de planilhas cinzas e formulários lentos. Desenvolvido sob a ótica **Touch-First e Zero Código**, ele permite modelar e calibrar projetos complexos diretamente em tablets ou smartphones em menos de um minuto — apenas tocando em blocos e chips pré-calibrados.
+O **RoadTask Studio** é um estúdio de engenharia e gestão de projetos projetado para arquitetos de soluções, engenheiros de software e gestores técnicos. Desenvolvido com foco em **agilidade, touch-first e alta fidelidade visual**, ele transforma a criação de cronogramas e roadmaps executivos em uma experiência fluida e moderna.
 
-Além disso, a aplicação foi empacotada com o bundler `vite-plugin-singlefile`, gerando um único arquivo autônomo de **278 KB** (`editor_cronograma.html`) que funciona **100% offline**, sem necessidade de internet, servidor ou instalação de Node.js na máquina final.
+O sistema opera no modelo **Offline-First**, podendo ser utilizado como um único arquivo autônomo de **~360 KB** (`editor_cronograma.html`) sem necessidade de conexão com a internet, ou conectado a um ecossistema completo de **persistência híbrida** (salvamento nativo no Windows via File System Access API ou sincronização na nuvem com backend Python FastAPI e NoSQL).
 
 ---
 
 ## 🚀 Principais Diferenciais
 
-### 🖐️ 1. Construtor Visual Tátil ("Tap-and-Build")
-- **Zero Sintaxe / Zero Código:** Sem fórmulas ou digitação de colchetes no tablet.
+### 📊 1. Layout Executivo com Raias de Fases (Swimlanes)
+- **Raias Verticais de Fases:** Coluna fixa à esquerda destacando claramente as fases (`Fase 1`, `Fase 2`, `Marcos`) e agrupando as atividades em blocos lógicos.
+- **Faixas Sombreadas Alternadas:** Shading suave nas raias para facilitar o rastreamento visual horizontal.
+- **Rótulos Inteligentes e Adaptativos:** Tarefas de curta duração (ex.: *Brainstorm 2d*) exibem o nome externamente à direita da barra, evitando sobreposição e cortes de texto; tarefas mais longas exibem o título internamente.
+- **Linha de Referência Temporal:** Marcador vertical vermelho indicando a data de corte/início do cronograma integrado.
+
+### 💾 2. Persistência Híbrida Inteligente
+- **Salvamento Direto no Windows (`File System Access API`):**
+  - Salva arquivos nativos `.roadtask.json` diretamente na pasta de sua escolha no Windows.
+  - Suporte ao atalho universal **`Ctrl+S`**: edite e salve instantaneamente no mesmo arquivo em disco, sem download repetido e sem caixas de diálogo adicionais.
+  - Indicador de status do arquivo vinculado no cabeçalho executivo com opção de desvincular em 1 clique.
+- **Backend Python FastAPI + NoSQL (MongoDB / JSON Store):**
+  - Modelagem NoSQL ideal para grafos hierárquicos de cronograma.
+  - Fallback automático inteligente: se o MongoDB não estiver rodando, a API grava e lê automaticamente de `backend/data/projects.json`.
+  - Containerização completa com **Docker & Docker Compose**.
+- **Deploy Serverless no Vercel:**
+  - Adaptador `api/index.py` pronto para o Vercel Python Runtime conectado ao MongoDB Atlas ou Supabase.
+
+### 🖐️ 3. Construtor Visual Tátil ("Tap-and-Build")
+- **Zero Sintaxe / Zero Código:** Sem fórmulas manuais ou digitação repetitiva.
 - **Entidades com 1 Toque:** `Fase/Épico`, `Sprint`, `Story/Tarefa` e `Marco (Milestone)`.
-- **Auto-Sugestão Inteligente de Nomes:** Ao tocar em *Sprint*, sugere automaticamente sequências (`Sprint 1`, `Sprint 2`...); ao tocar em *Marco*, sugere marcos executivos (`Go-Live`, `Homologação`, `Aceite`).
-- **Chips de Duração Rápida:** Botões táteis com alvos de toque largos (`+1d`, `+3d`, `+5d (1 sem)`, `+10d (2 sem)`, `+20d (1 mês)` e steppers `[-]` / `[+]`).
-- **Auto-Encadeamento:** Botão `[🔗 Encadeia com Anterior]` conecta a nova tarefa diretamente ao término da anterior (FS) com zero cliques adicionais.
+- **Auto-Sugestão Inteligente:** Sugere sequências de sprints (`Sprint 1`, `Sprint 2`...) e marcos estratégicos (`Go-Live`, `Homologação`, `Aceite`).
+- **Chips de Duração Rápida:** Botões ergonômicos (`+1d`, `+3d`, `+5d`, `+10d`, `+20d` e steppers `[-]` / `[+]`).
+- **Auto-Encadeamento:** Botão `[🔗 Encadeia com Anterior]` liga a nova tarefa ao término da anterior (relação Término-Início / FS) instantaneamente.
 
-### 🧮 2. Motor Matemático Rigoroso
-- **Calendário de Dias Úteis:** Exclusão automática de sábados e domingos com calendário dinâmico embutido de feriados nacionais brasileiros (fixos e móveis como Páscoa, Carnaval e Corpus Christi).
-- **Propagação em Cascata (FS, SS, FF):** Recalcula prazos instantaneamente em cadeia com detecção de ciclo via ordenação topológica.
-- **Caminho Crítico (CPM):** Algoritmo Critical Path Method que calcula folga total (*Total Float*) e destaca gargalos ativos em carmim neon brilhante.
+### 🧮 4. Motor Matemático Rigoroso
+- **Calendário de Dias Úteis:** Exclusão automática de finais de semana com cálculo dinâmico de feriados nacionais brasileiros (fixos e móveis como Carnaval, Páscoa e Corpus Christi).
+- **Propagação em Cascata (FS, SS, FF):** Recálculo instantâneo de prazos com validação topológica contra ciclos de dependência.
+- **Caminho Crítico (CPM):** Algoritmo Critical Path Method que calcula a folga total (*Total Float*) e destaca atividades críticas em carmim neon.
 
-### 🎭 3. Modo Pitch C-Level ("Sala de Guerra")
-- **1 Toque para Tela Cheia:** Oculta menus técnicos e controles de edição, maximizando a linha do tempo para projeção em salas de reunião.
-- **Scorecards de KPIs Executivos:**
-  - **Go-Live Previsto** com indicador de folga ou atraso em relação à meta.
+### 🎭 5. Modo Pitch C-Level ("Sala de Guerra")
+- **1 Toque para Tela Cheia:** Oculta controles de edição para projeção limpa em reuniões com diretorias e clientes.
+- **Scorecards Executivos (KPIs):**
+  - **Go-Live Previsto** com indicador de folga ou atraso.
   - **Duração Total** em dias úteis reais.
-  - **Progresso Global (%)** com barra de preenchimento suave.
-  - **Gargalos no Caminho Crítico** (alertas de atividades com folga zero).
+  - **Progresso Global (%)** ponderado.
+  - **Gargalos no Caminho Crítico** (alertas de tarefas sem folga).
   - **Marcos Estratégicos** destacados em diamante dourado.
 
-### 🔮 4. Simulador "What-If" em Tempo Real
-- Na reunião com a diretoria do cliente: *"E se o fornecedor de hardware atrasar 2 semanas?"*
-- Ative o modo **What-If**, arraste a barra com o dedo e veja o impacto instantâneo:
-  - A interface renderiza a **Linha de Base Original (Baseline)** pontilhada para comparação visual.
-  - Exibe um badge em tempo real: `⚠️ Impacto no Go-Live: +10 dias úteis`.
-  - Permite efetivar as alterações ou descartar e voltar ao plano original, com suporte a **Desfazer/Refazer (Undo/Redo)**.
+### 🔮 6. Simulador "What-If" em Tempo Real
+- Simule atrasos ou adiantamentos arrastando qualquer barra no gráfico:
+  - Renderiza a **Linha de Base Original (Baseline)** pontilhada para comparação.
+  - Exibe o impacto líquido no Go-Live em tempo real (`Ex: ⚠️ Impacto no Go-Live: +10 dias úteis`).
+  - Suporte completo a **Desfazer/Refazer (Undo/Redo)**.
 
-### 📱 5. Quatro Modos de Visualização
-1. **Gantt Timeline:** Linha do tempo vetorial SVG com rolagem suave, conexões Bézier de dependência, marcador de *Hoje* e barras táteis interativas.
-2. **Task Deck (Cards Mobile):** Cartões ergonômicos desenhados para smartphone com slider tátil de progresso (0% a 100%) ao alcance do polegar.
-3. **WBS Tabela:** Visão hierárquica tabular para planejamento corporativo minucioso.
-4. **Split Screen:** Visualização dividida lado a lado (Tabela + Linha do Tempo) para tablets e desktops.
+### 📱 7. Múltiplos Modos de Visualização
+1. **Gantt Timeline:** Linha do tempo vetorial SVG com rolagem suave, raias de fases, curvas Bézier e arraste interativo.
+2. **Task Deck (Cards Mobile):** Cartões táteis com slider de progresso ao alcance do polegar para smartphones.
+3. **WBS Tabela:** Visão hierárquica tabular detalhada.
+4. **Split Screen:** Visualização dividida lado a lado (Tabela + Gráfico Gantt).
 
-### 📁 6. Blueprints de Engenharia Integrados
-- **Implantação Piloto SGFrotas (Polo Logístico SP):** Cronograma completo para a reunião de 21/09 (diagnóstico, telemetria em 40 veículos, integração de portal e go-live).
-- **Engenharia de Software Ágil:** Estruturado em Sprints de 2 semanas com histórias, testes e release.
-- **Infraestrutura & Migração Cloud:** Assessment, Landing Zone, replicação de bancos e cutover.
-- **Projeto em Branco:** Canvas limpo para criar novos cronogramas do zero.
-
-### 🔄 7. Interoperabilidade & Exportações
-- **Mermaid.js Bidirecional:** Exporta código Mermaid com 1 clique para colar no Notion, GitHub ou markdown, além de permitir colar código Mermaid para gerar o gráfico visual.
-- **JSON Completo:** Backup e restauração de projetos locais.
-- **Relatório para Impressão / PDF A4:** Estilos de impressão `@media print` calibrados para modo paisagem (Landscape).
+### 🔄 8. Interoperabilidade & Exportações
+- **Mermaid.js Bidirecional:** Exporta código Mermaid com 1 clique para colar no Notion/GitHub e importa código Mermaid existente para renderização imediata.
+- **JSON Completo:** Backup, compartilhamento e restauração de projetos.
+- **Impressão / PDF A4:** Estilos de impressão `@media print` otimizados para modo paisagem (Landscape).
 
 ---
 
 ## 💻 Como Utilizar
 
 ### Modo 1: Executável Standalone Offline (Sem Instalação)
-Basta abrir diretamente com duplo clique o arquivo:
+Basta abrir diretamente com duplo clique no navegador:
 ```
 editor_cronograma.html
 ```
-*(ou `dist/index.html`)*  
-Ele abre em qualquer navegador (Chrome, Edge, Safari, Firefox), smartphone ou tablet sem precisar de internet ou servidor.
+*(Funciona 100% offline em Chrome, Edge, Safari, Firefox, tablets e smartphones).*
 
 ---
 
-### Modo 2: Ambiente de Desenvolvimento Local
+### Modo 2: Ambiente de Desenvolvimento (Frontend)
 
-#### Pré-requisitos
-- Node.js 18+ instalado.
-
-#### Instalação e Execução
 ```powershell
-# 1. Instalar as dependências
-npm run install
+# 1. Instalar as dependências do frontend
+npm install
 
-# 2. Iniciar o servidor de desenvolvimento
+# 2. Iniciar o servidor de desenvolvimento Vite
 npm run dev
 
-# 3. Testar a visualização em rede local (para abrir no iPad/smartphone)
-npm run preview -- --host
-```
-
-#### Compilar Novo Arquivo Único Standalone
-Para regerar o executável `.html` com eventuais customizações:
-```powershell
+# 3. Gerar novo executável único standalone atualizado
 npm run build
 ```
-O arquivo unificado será gerado automaticamente em `dist/index.html` (~278 KB).
+
+---
+
+### Modo 3: Backend Python & Docker (Opcional)
+
+Para rodar a API localmente com Docker e banco de dados NoSQL:
+
+```powershell
+# Iniciar o backend FastAPI e o MongoDB
+docker compose up -d
+```
+- **API FastAPI:** `http://localhost:8000`
+- **Documentação Swagger Interativa:** `http://localhost:8000/docs`
+- **MongoDB:** `localhost:27017`
+
+*(Para executar sem Docker, basta entrar na pasta `backend`, executar `pip install -r requirements.txt` e iniciar com `uvicorn backend.main:app --reload --port 8000`).*
 
 ---
 
 ## 🏗️ Estrutura do Projeto
 
 ```
-EditorGantt/
-├── editor_cronograma.html     # Executável único standalone 100% offline
-├── package.json
-├── vite.config.ts             # Plugin vite-plugin-singlefile configurado
-├── tailwind.config.js         # Tokens Obsidian, Safira, Esmeralda, Carmim e Ouro
-├── tsconfig.json
-├── docs/                      # Documentação contínua de engenharia
-│   ├── doc.md                 # Especificação técnica dos módulos
-│   ├── tasks.md               # Checklist de entregas e progresso
-│   └── implementation_plan.md # Plano de arquitetura aprovado
-├── walkthrough/               # Histórico de validação e testes visuais
-└── src/
-    ├── main.tsx
-    ├── App.tsx
+RoadTask-Studio/
+├── editor_cronograma.html        # Executável único standalone 100% offline
+├── docker-compose.yml            # Orquestração do Backend Python + MongoDB
+├── package.json                  # Dependências do frontend React + Vite
+├── vite.config.ts                # Configuração do bundler e singlefile plugin
+├── tailwind.config.js            # Design tokens (Obsidian, Safira, Carmim, Ouro)
+├── tsconfig.json                 # Configuração TypeScript
+│
+├── api/                          # Serverless entrypoint
+│   └── index.py                  # Adaptador ASGI para Vercel Python Runtime
+│
+├── backend/                      # Backend Python FastAPI
+│   ├── Dockerfile                # Imagem Docker Python 3.11-slim
+│   ├── requirements.txt          # Dependências (FastAPI, Motor, Uvicorn, Pydantic)
+│   ├── main.py                   # Rotas REST da API (/api/projects, /api/health)
+│   ├── models.py                 # Schemas Pydantic (Project, Task, Dependency)
+│   └── database.py               # Conexão MongoDB assíncrona com fallback JSON
+│
+└── src/                          # Código-fonte Frontend (React 18 + TS)
+    ├── main.tsx                  # Ponto de entrada React
+    ├── App.tsx                   # Componente raiz da aplicação
+    ├── index.css                 # Estilos globais e fontes executivas
     ├── types/
-    │   └── gantt.ts           # Tipos de tarefas, dependências, KPIs e simulação
+    │   └── gantt.ts              # Interfaces TypeScript estritas
     ├── engine/
-    │   ├── calendar.ts        # Cálculo matemático de dias úteis e feriados nacionais BR
-    │   ├── dependencies.ts    # Propagação em cascata e detecção de ciclos
-    │   ├── criticalPath.ts    # Algoritmo CPM e folga total
-    │   └── mermaidEngine.ts   # Exportador e importador bidirecional Mermaid
+    │   ├── calendar.ts           # Cálculo de dias úteis e feriados brasileiros
+    │   ├── dependencies.ts       # Validação de dependências e ordenação topológica
+    │   ├── criticalPath.ts       # Algoritmo CPM e cálculo de folga total
+    │   └── mermaidEngine.ts      # Parser e gerador bidirecional de Mermaid
+    ├── services/
+    │   ├── apiClient.ts          # Cliente HTTP para a API Python / Vercel
+    │   └── windowsFileSystem.ts  # File System Access API para salvar no Windows (Ctrl+S)
     ├── context/
-    │   └── GanttContext.tsx   # Estado reativo, histórico Undo/Redo e modo What-If
+    │   ├── GanttContext.tsx      # Estado global, histórico Undo/Redo e atalhos
+    │   └── GuidedAccessContext.tsx # Contexto de acessibilidade e tutoriais
     ├── data/
-    │   ├── blueprints.ts      # Modelos executivos (SGFrotas, Cloud, Software, Novo)
-    │   └── holidaysBR.ts      # Motor de feriados oficiais do Brasil
+    │   ├── blueprints.ts         # Modelos pré-configurados (SGFrotas, Cloud, Ágil)
+    │   └── holidaysBR.ts         # Base de feriados móveis e nacionais
     └── components/
+        ├── brand/
+        │   └── RoadTaskLogo.tsx  # Logotipo vetorial oficial
         ├── layout/
-        │   ├── ExecutiveHeader.tsx    # Barra de topo com Pitch Mode, Undo/Redo e Zoom
-        │   ├── ExecutiveKpiBar.tsx    # Scorecards executivos C-Level
-        │   ├── TapAndBuildToolbar.tsx # Esteira de montagem tátil (Zero Código)
-        │   └── MobileBottomNav.tsx    # Navegação inferior ergonômica para smartphones
+        │   ├── ExecutiveHeader.tsx   # Topbar executiva, status de arquivo e zoom
+        │   ├── ExecutiveKpiBar.tsx   # Painel de métricas C-Level
+        │   ├── TapAndBuildToolbar.tsx# Barra de inserção tátil de tarefas
+        │   ├── ProjectMenu.tsx       # Menu de gerenciamento de projetos
+        │   └── MobileBottomNav.tsx   # Barra de navegação móvel
         ├── views/
-        │   ├── TaskDeckView.tsx       # Visão Mobile: Cards com slider de progresso
-        │   ├── TaskTableView.tsx      # Visão Tablet/Desktop: WBS tabular
-        │   └── GanttTimelineView.tsx  # Visão Gantt: Renderizador SVG com drag e touch
+        │   ├── GanttTimelineView.tsx # Renderizador SVG com raias de fases (Swimlanes)
+        │   ├── TaskDeckView.tsx      # Visualização móvel em cards
+        │   └── TaskTableView.tsx     # Visualização tabular WBS
         └── modals/
-            ├── TaskDrawer.tsx         # Bottom Sheet móvel para edição de tarefas
-            ├── BlueprintSelectorModal.tsx # Seletor de modelos de engenharia
-            ├── ExportModal.tsx        # Exportador Mermaid, JSON e Impressão PDF
-            └── SimulationBanner.tsx   # Faixa do simulador What-If
+            ├── StorageModal.tsx      # Central de Armazenamento (Windows & Nuvem)
+            ├── TaskDrawer.tsx        # Painel lateral de edição de tarefas
+            ├── ExportModal.tsx       # Exportação Mermaid, JSON e Impressão
+            └── BlueprintSelectorModal.tsx # Catálogo de templates
 ```
-
----
-
-## 🎯 Integração Futura com o SGFrotas (Portal do Gestor)
-
-Todo o código foi construído em **React 18 modular e TypeScript estrito**. Quando o desenvolvimento do Portal do Gestor do SGFrotas alcançar a fase de implantação de cronogramas, os componentes da pasta `src/engine/` e `src/components/` podem ser transplantados diretamente para o repositório principal como o módulo nativo de **"Gestão de Prazos, Manutenções e Implantação de Frotas"**, garantindo reaproveitamento de 100% da inteligência desenvolvida.
 
 ---
 
 ## 📄 Licença
 
-Uso exclusivo e confidencial para projetos executivos e engenharia de soluções.
+Projeto desenvolvido para gestão executiva de roadmaps, cronogramas integrados de engenharia e implantações de soluções de tecnologia.
