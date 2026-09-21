@@ -14,6 +14,7 @@ import { BlueprintSelectorModal } from './components/modals/BlueprintSelectorMod
 import { ExportModal } from './components/modals/ExportModal';
 import { SimulationBanner } from './components/modals/SimulationBanner';
 import { GuidedTooltipOverlay } from './components/guided/GuidedTooltip';
+import { ExecutivePrintReport } from './components/reports/ExecutivePrintReport';
 
 export const App: React.FC = () => {
   const { viewMode, isPitchMode, selectedTask, setSelectedTaskId } = useGantt();
@@ -35,27 +36,30 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-obsidian-950 text-slate-100 flex flex-col font-sans">
-      {/* Executive Header (normal no modo editor, ou PitchHeader limpo no modo apresentação) */}
-      {!isPitchMode ? (
-        <ExecutiveHeader
-          onOpenBlueprints={() => setIsBlueprintModalOpen(true)}
-          onOpenExport={() => setIsExportModalOpen(true)}
-        />
-      ) : (
-        <PitchHeader />
-      )}
+      {/* ======================= CONTROLES DE TELA (NO-PRINT) ======================= */}
+      <div className="no-print flex flex-col">
+        {/* Executive Header (normal no modo editor, ou PitchHeader limpo no modo apresentação) */}
+        {!isPitchMode ? (
+          <ExecutiveHeader
+            onOpenBlueprints={() => setIsBlueprintModalOpen(true)}
+            onOpenExport={() => setIsExportModalOpen(true)}
+          />
+        ) : (
+          <PitchHeader />
+        )}
 
-      {/* C-Level KPI Scorecard */}
-      <ExecutiveKpiBar />
+        {/* C-Level KPI Scorecard */}
+        <ExecutiveKpiBar />
 
-      {/* What-If Live Simulation Banner */}
-      <SimulationBanner />
+        {/* What-If Live Simulation Banner */}
+        <SimulationBanner />
 
-      {/* Tap-and-Build Visual Toolbar (hidden in Pitch Mode for clean executive projection) */}
-      {!isPitchMode && <TapAndBuildToolbar />}
+        {/* Tap-and-Build Visual Toolbar (hidden in Pitch Mode for clean executive projection) */}
+        {!isPitchMode && <TapAndBuildToolbar />}
+      </div>
 
-      {/* Main Viewport Container */}
-      <main className="flex-1 flex flex-col overflow-hidden relative">
+      {/* Main Viewport Container (oculto na impressão) */}
+      <main className="flex-1 flex flex-col overflow-hidden relative no-print">
         {/* VIEW 1: Timeline (Gantt) */}
         {viewMode === 'timeline' && (
           <GanttTimelineView onSelectTask={handleEditTask} />
@@ -84,32 +88,41 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Bottom Navigation for Smartphones (< 768px) */}
-      <MobileBottomNav
-        onOpenQuickAdd={handleQuickAdd}
-        onOpenBlueprints={() => setIsBlueprintModalOpen(true)}
-        onOpenExport={() => setIsExportModalOpen(true)}
-      />
+      {/* Bottom Navigation for Smartphones (no-print) */}
+      <div className="no-print">
+        <MobileBottomNav
+          onOpenQuickAdd={handleQuickAdd}
+          onOpenBlueprints={() => setIsBlueprintModalOpen(true)}
+          onOpenExport={() => setIsExportModalOpen(true)}
+        />
+      </div>
 
-      {/* Modals & Drawers */}
-      <TaskDrawer
-        task={selectedTask}
-        isOpen={isTaskDrawerOpen}
-        onClose={() => setIsTaskDrawerOpen(false)}
-      />
+      {/* Modals & Drawers (no-print) */}
+      <div className="no-print">
+        <TaskDrawer
+          task={selectedTask}
+          isOpen={isTaskDrawerOpen}
+          onClose={() => setIsTaskDrawerOpen(false)}
+        />
 
-      <BlueprintSelectorModal
-        isOpen={isBlueprintModalOpen}
-        onClose={() => setIsBlueprintModalOpen(false)}
-      />
+        <BlueprintSelectorModal
+          isOpen={isBlueprintModalOpen}
+          onClose={() => setIsBlueprintModalOpen(false)}
+        />
 
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-      />
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+        />
 
-      {/* Global Guided Mode Tooltip & Micro-Animation Layer */}
-      <GuidedTooltipOverlay />
+        {/* Global Guided Mode Tooltip & Micro-Animation Layer */}
+        <GuidedTooltipOverlay />
+      </div>
+
+      {/* =========================================================================
+          DOCUMENTAÇÃO EXECUTIVA OFICIAL A4 PARA IMPRESSÃO & EXPORTAÇÃO PDF
+         ========================================================================= */}
+      <ExecutivePrintReport />
     </div>
   );
 };

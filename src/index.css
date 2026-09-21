@@ -34,15 +34,17 @@
 
 /* Print Styles for Executive A4 Landscape */
 @media print {
+  html,
   body {
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  header,
-  nav,
   .no-print,
-  button {
+  nav,
+  button.no-print {
     display: none !important;
   }
 
@@ -52,6 +54,13 @@
 
   @page {
     size: landscape;
-    margin: 1cm;
+    margin: 8mm 10mm;
+  }
+
+  tr,
+  .print-break-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
+
