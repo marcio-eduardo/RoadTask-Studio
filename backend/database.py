@@ -6,14 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGODB_URI = (
-    os.getenv("MONGODB_URI")
-    or os.getenv("MONGODB_URL")
-    or os.getenv("DATABASE_URL")
-    or "mongodb://localhost:27017"
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = (
+    os.getenv("SUPABASE_KEY")
+    or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("SUPABASE_ANON_KEY")
 )
-DATABASE_NAME = os.getenv("DATABASE_NAME", "roadtask_db")
-COLLECTION_NAME = "projects"
+TABLE_NAME = os.getenv("SUPABASE_TABLE", "projects")
 
 # Vercel serverless environment has read-only filesystem except /tmp
 if os.getenv("VERCEL"):
@@ -23,28 +22,28 @@ else:
 
 FILE_STORE_PATH = os.path.join(DATA_DIR, "projects.json")
 
-# Ensure local data directory exists for fallback
 try:
     os.makedirs(DATA_DIR, exist_ok=True)
 except Exception:
     pass
 
+
 class DatabaseAdapter:
     def __init__(self):
-        self.use_mongo = False
-        self.mongo_client = None
-        self.collection = None
+        self.use_supabase = False
+        self.client = None
         self._init_connection()
 
     def _init_connection(self):
-        try:
-            from motor.motor_asyncio import AsyncIOMotorClient
-            self.mongo_client = AsyncIOMotorClient(MONGODB_URI, serverSelectionTimeoutMS=2000)
-            db = self.mongo_client[DATABASE_NAME]
-            self.collection = db[COLLECTION_NAME]
-            self.use_mongo = True
-        except Exception:
-            self.use_mongo = False
+        if SUPABASE_URL and SUPABASE_KEY:
+            try:
+                from supabase import create_client
+                self.client = create_client(SUPABASE_URL, SUPABASE_KEY)
+                self.use_supabase = True
+            except Exception:
+                self.use_supabase = False
+        else:
+            self.use_supabase = False
 
     def _read_file_store(self) -> dict:
         if not os.path.exists(FILE_STORE_PATH):
@@ -60,27 +59,53 @@ class DatabaseAdapter:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
     async def ping(self) -> dict:
-        if self.use_mongo and self.mongo_client:
+        if self.use_supabase and self.client:
             try:
-                await self.mongo_client.admin.command('ping')
-                return {"status": "online", "engine": "MongoDB", "uri": MONGODB_URI}
+                # Test query against Supabase
+                self.client.table(TABLE_NAME).select("id").limit(1).execute()
+                return {
+                    "status": "online",
+                    "engine": "Supabase (PostgreSQL JSONB)",
+                    "url": SUPABASE_URL,
+                }
             except Exception as e:
-                return {"status": "degraded", "engine": "JSON File Store (Mongo unreachable)", "detail": str(e)}
-        return {"status": "online", "engine": "JSON File Store", "path": FILE_STORE_PATH}
+                return {
+                    "status": "degraded",
+                    "engine": "JSON File Store (Supabase inacessível ou tabela não criada)",
+                    "detail": str(e),
+                }
+        return {
+            "status": "online",
+            "engine": "JSON File Store (Local / Standalone)",
+            "path": FILE_STORE_PATH,
+        }
 
     async def list_projects(self) -> List[dict]:
-        if self.use_mongo and self.collection is not None:
+        if self.use_supabase and self.client:
             try:
-                cursor = self.collection.find({}, {"tasks": 0})
-                projects = []
-                async for doc in cursor:
-                    doc["_id"] = str(doc["_id"])
-                    projects.append(doc)
-                return projects
+                res = (
+                    self.client.table(TABLE_NAME)
+                    .select("id, name, client_name, description, target_date, updated_at, data")
+                    .execute()
+                )
+                summaries = []
+                for row in res.data:
+                    project_data = row.get("data") or {}
+                    tasks = project_data.get("tasks", [])
+                    summaries.append({
+                        "id": row.get("id"),
+                        "name": row.get("name") or project_data.get("name", ""),
+                        "clientName": row.get("client_name") or project_data.get("clientName"),
+                        "description": row.get("description") or project_data.get("description"),
+                        "targetDate": row.get("target_date") or project_data.get("targetDate"),
+                        "updatedAt": row.get("updated_at") or project_data.get("updatedAt", ""),
+                        "taskCount": len(tasks),
+                    })
+                return summaries
             except Exception:
                 pass
 
-        # File store fallback
+        # Fallback to local file store
         data = self._read_file_store()
         summaries = []
         for p in data.values():
@@ -96,16 +121,15 @@ class DatabaseAdapter:
         return summaries
 
     async def get_project(self, project_id: str) -> Optional[dict]:
-        if self.use_mongo and self.collection is not None:
+        if self.use_supabase and self.client:
             try:
-                doc = await self.collection.find_one({"id": project_id})
-                if doc:
-                    doc.pop("_id", None)
-                    return doc
+                res = self.client.table(TABLE_NAME).select("data").eq("id", project_id).execute()
+                if res.data and len(res.data) > 0:
+                    return res.data[0].get("data")
             except Exception:
                 pass
 
-        # File store fallback
+        # Fallback to local file store
         data = self._read_file_store()
         return data.get(project_id)
 
@@ -113,37 +137,43 @@ class DatabaseAdapter:
         project_dict["updatedAt"] = datetime.utcnow().strftime("%Y-%m-%d")
         project_id = project_dict["id"]
 
-        if self.use_mongo and self.collection is not None:
+        if self.use_supabase and self.client:
             try:
-                await self.collection.replace_one(
-                    {"id": project_id},
-                    project_dict,
-                    upsert=True
-                )
+                payload = {
+                    "id": project_id,
+                    "name": project_dict.get("name", "Sem Título"),
+                    "client_name": project_dict.get("clientName", ""),
+                    "description": project_dict.get("description", ""),
+                    "target_date": project_dict.get("targetDate", ""),
+                    "updated_at": project_dict["updatedAt"],
+                    "data": project_dict,
+                }
+                self.client.table(TABLE_NAME).upsert(payload).execute()
                 return project_dict
             except Exception:
                 pass
 
-        # File store fallback
+        # Fallback to local file store
         data = self._read_file_store()
         data[project_id] = project_dict
         self._write_file_store(data)
         return project_dict
 
     async def delete_project(self, project_id: str) -> bool:
-        if self.use_mongo and self.collection is not None:
+        if self.use_supabase and self.client:
             try:
-                result = await self.collection.delete_one({"id": project_id})
-                return result.deleted_count > 0
+                self.client.table(TABLE_NAME).delete().eq("id", project_id).execute()
+                return True
             except Exception:
                 pass
 
-        # File store fallback
+        # Fallback to local file store
         data = self._read_file_store()
         if project_id in data:
             del data[project_id]
             self._write_file_store(data)
             return True
         return False
+
 
 db_adapter = DatabaseAdapter()

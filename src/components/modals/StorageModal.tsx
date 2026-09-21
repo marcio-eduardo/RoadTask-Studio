@@ -200,7 +200,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
             }`}
           >
             <Cloud className="w-4 h-4 text-esmeralda-400" />
-            <span>Backend Python / NoSQL</span>
+            <span>Backend Python / Supabase</span>
             {apiHealth && (
               <span className="w-2 h-2 rounded-full bg-esmeralda-400" />
             )}
@@ -325,7 +325,7 @@ export const StorageModal: React.FC<StorageModalProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <Server className="w-4 h-4 text-esmeralda-400" />
-                    <span className="text-xs font-bold text-white">Servidor Python (FastAPI + NoSQL)</span>
+                    <span className="text-xs font-bold text-white">Servidor Python (FastAPI + Supabase)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {apiHealth ? (

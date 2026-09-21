@@ -26,12 +26,12 @@ O sistema opera no modelo **Offline-First**, podendo ser utilizado como um únic
   - Salva arquivos nativos `.roadtask.json` diretamente na pasta de sua escolha no Windows.
   - Suporte ao atalho universal **`Ctrl+S`**: edite e salve instantaneamente no mesmo arquivo em disco, sem download repetido e sem caixas de diálogo adicionais.
   - Indicador de status do arquivo vinculado no cabeçalho executivo com opção de desvincular em 1 clique.
-- **Backend Python FastAPI + NoSQL (MongoDB / JSON Store):**
-  - Modelagem NoSQL ideal para grafos hierárquicos de cronograma.
-  - Fallback automático inteligente: se o MongoDB não estiver rodando, a API grava e lê automaticamente de `backend/data/projects.json`.
-  - Containerização completa com **Docker & Docker Compose**.
+- **Backend Python FastAPI + Supabase (PostgreSQL JSONB):**
+  - Armazenamento em coluna `data JSONB` no Supabase com generosos 1.5 GB gratuitos e excelente desempenho.
+  - Fallback automático inteligente: se o Supabase não estiver configurado, a API grava e lê automaticamente de `backend/data/projects.json`.
+  - Containerização pronta com **Docker & Docker Compose**.
 - **Deploy Serverless no Vercel:**
-  - Adaptador `api/index.py` pronto para o Vercel Python Runtime conectado ao MongoDB Atlas ou Supabase.
+  - Adaptador `api/index.py` pronto para o Vercel Python Runtime conectado diretamente ao Supabase.
 
 ### 🖐️ 3. Construtor Visual Tátil ("Tap-and-Build")
 - **Zero Sintaxe / Zero Código:** Sem fórmulas manuais ou digitação repetitiva.
@@ -101,15 +101,14 @@ npm run build
 
 ### Modo 3: Backend Python & Docker (Opcional)
 
-Para rodar a API localmente com Docker e banco de dados NoSQL:
+Para rodar a API localmente com Docker:
 
 ```powershell
-# Iniciar o backend FastAPI e o MongoDB
+# Iniciar o backend FastAPI
 docker compose up -d
 ```
 - **API FastAPI:** `http://localhost:8000`
 - **Documentação Swagger Interativa:** `http://localhost:8000/docs`
-- **MongoDB:** `localhost:27017`
 
 *(Para executar sem Docker, basta entrar na pasta `backend`, executar `pip install -r requirements.txt` e iniciar com `uvicorn backend.main:app --reload --port 8000`).*
 
@@ -120,21 +119,22 @@ docker compose up -d
 ```
 RoadTask-Studio/
 ├── editor_cronograma.html        # Executável único standalone 100% offline
-├── docker-compose.yml            # Orquestração do Backend Python + MongoDB
+├── docker-compose.yml            # Orquestração do Backend Python
 ├── package.json                  # Dependências do frontend React + Vite
 ├── vite.config.ts                # Configuração do bundler e singlefile plugin
 ├── tailwind.config.js            # Design tokens (Obsidian, Safira, Carmim, Ouro)
 ├── tsconfig.json                 # Configuração TypeScript
 │
 ├── api/                          # Serverless entrypoint
-│   └── index.py                  # Adaptador ASGI para Vercel Python Runtime
+│   ├── index.py                  # Adaptador ASGI para Vercel Python Runtime
+│   └── requirements.txt          # Dependências Python para o Vercel Runtime
 │
 ├── backend/                      # Backend Python FastAPI
 │   ├── Dockerfile                # Imagem Docker Python 3.11-slim
-│   ├── requirements.txt          # Dependências (FastAPI, Motor, Uvicorn, Pydantic)
+│   ├── requirements.txt          # Dependências (FastAPI, Supabase, Uvicorn, Pydantic)
 │   ├── main.py                   # Rotas REST da API (/api/projects, /api/health)
 │   ├── models.py                 # Schemas Pydantic (Project, Task, Dependency)
-│   └── database.py               # Conexão MongoDB assíncrona com fallback JSON
+│   └── database.py               # Conexão Supabase JSONB com fallback JSON local
 │
 └── src/                          # Código-fonte Frontend (React 18 + TS)
     ├── main.tsx                  # Ponto de entrada React
