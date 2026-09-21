@@ -60,7 +60,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
   }, [zoomLevel]);
 
   const rowHeight = 52; // 52px per task row for great touch ergonomics
-  const headerHeight = 56;
+  const monthHeaderHeight = 24;
+  const dayHeaderHeight = 36;
+  const headerHeight = monthHeaderHeight + dayHeaderHeight; // 60px
   const phaseColWidth = 140; // Width of sticky left phase swimlane column
 
   // Group tasks by phase and build displayTasks (excluding summary phase bars from timeline rows)
@@ -185,6 +187,56 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
   const todayStr = useMemo(() => formatDateUtc(new Date()), []);
   const todayX = useMemo(() => getXForDate(todayStr), [todayStr, minDateTimestamp, colWidth]);
 
+  // Group timelineDates into contiguous month blocks for the top month bar
+  const monthBlocks = useMemo(() => {
+    const blocks: {
+      key: string;
+      label: string;
+      daysCount: number;
+      width: number;
+      startX: number;
+      endX: number;
+      isCurrentMonth: boolean;
+    }[] = [];
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    let currentX = 0;
+    for (const dateStr of timelineDates) {
+      const [y, m] = dateStr.split('-');
+      const key = `${y}-${m}`;
+      const lastBlock = blocks[blocks.length - 1];
+
+      if (lastBlock && lastBlock.key === key) {
+        lastBlock.daysCount += 1;
+        lastBlock.width += colWidth;
+        lastBlock.endX += colWidth;
+        if (dateStr === todayStr) {
+          lastBlock.isCurrentMonth = true;
+        }
+      } else {
+        const monthIdx = parseInt(m, 10) - 1;
+        const label = `${monthNames[monthIdx] || ''} ${y}`.toUpperCase();
+        const startX = currentX;
+        const width = colWidth;
+        blocks.push({
+          key,
+          label,
+          daysCount: 1,
+          width,
+          startX,
+          endX: startX + width,
+          isCurrentMonth: dateStr === todayStr,
+        });
+      }
+      currentX += colWidth;
+    }
+
+    return blocks;
+  }, [timelineDates, colWidth, todayStr]);
+
   // Dragging / Resizing State (hybrid mouse and touch)
   const [dragState, setDragState] = useState<{
     mode: 'move' | 'resize-end' | 'progress';
@@ -277,10 +329,13 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
               {/* Sticky Top Header Cell for Phases */}
               <div
                 style={{ height: headerHeight }}
-                className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex items-center justify-center px-3 transition-colors"
+                className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex flex-col items-center justify-center px-3 transition-colors select-none"
               >
                 <span className="text-xs font-black uppercase tracking-wider text-gantt-text-secondary">
                   Fase
+                </span>
+                <span className="text-[9.5px] text-gantt-text-muted font-semibold tracking-tight">
+                  Swimlanes
                 </span>
               </div>
 
@@ -515,34 +570,80 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
 
             {/* Sticky Time Header */}
             <div
-              className="sticky top-0 z-20 bg-gantt-header/95 backdrop-blur border-b border-gantt-border flex transition-colors"
+              className="sticky top-0 z-20 bg-gantt-header/95 backdrop-blur border-b border-gantt-border flex flex-col transition-colors select-none"
               style={{ height: headerHeight, width: totalWidth }}
             >
-              {timelineDates.map(dateStr => {
-                const isWorking = isWorkDay(dateStr, project.calendar);
-                const dayOfWeek = getDayOfWeekBr(dateStr);
-                const isToday = dateStr === todayStr;
-                const [y, m, d] = dateStr.split('-');
+              {/* Row 1: Month Bar */}
+              <div
+                className="flex border-b border-gantt-border/60 bg-gantt-card/40 overflow-hidden"
+                style={{ height: monthHeaderHeight }}
+              >
+                {monthBlocks.map(mb => {
+                  const labelWidth = 140;
+                  const offset = mb.isCurrentMonth
+                    ? Math.max(0, Math.min(todayX - mb.startX, mb.width - labelWidth))
+                    : 0;
 
-                return (
-                  <div
-                    key={dateStr}
-                    style={{ width: colWidth }}
-                    className={`shrink-0 flex flex-col items-center justify-center text-center select-none transition-colors ${
-                      !isWorking
-                        ? 'bg-gantt-card/70 text-slate-500 dark:text-slate-400 font-semibold border-x border-gantt-border/40'
-                        : 'text-slate-700 dark:text-slate-300'
-                    } ${isToday ? 'bg-safira-500/10 text-safira-700 dark:text-safira-400 font-bold ring-1 ring-safira-500/30' : ''}`}
-                  >
-                    <span className={`text-[10px] uppercase tracking-wider ${!isWorking ? 'text-slate-400/90 font-bold' : 'font-semibold opacity-70'}`}>
-                      {zoomLevel === 'month' ? (d === '01' ? `${m}/${y.slice(2)}` : '') : dayOfWeek}
-                    </span>
-                    <span className="text-xs font-bold tabular-nums">
-                      {zoomLevel === 'month' ? (d === '01' || d === '15' ? d : '') : d}
-                    </span>
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={mb.key}
+                      style={{ width: mb.width }}
+                      className="shrink-0 flex items-center justify-start px-2 border-r border-gantt-border/60 overflow-hidden relative"
+                    >
+                      <div
+                        style={{
+                          transform: `translateX(${offset}px)`,
+                          transition: 'transform 0.15s ease-out',
+                        }}
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded ${
+                          mb.isCurrentMonth
+                            ? 'bg-safira-500/15 text-safira-700 dark:text-safira-300 font-extrabold ring-1 ring-safira-500/30'
+                            : 'text-gantt-text-primary font-black'
+                        }`}
+                      >
+                        <span className="text-[10.5px] uppercase tracking-wider truncate">
+                          {mb.label}
+                        </span>
+                        {mb.isCurrentMonth && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0"
+                            title="Mês da Linha Hoje (Data Atual)"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Row 2: Days Columns */}
+              <div className="flex flex-1" style={{ height: dayHeaderHeight }}>
+                {timelineDates.map(dateStr => {
+                  const isWorking = isWorkDay(dateStr, project.calendar);
+                  const dayOfWeek = getDayOfWeekBr(dateStr);
+                  const isToday = dateStr === todayStr;
+                  const [y, m, d] = dateStr.split('-');
+
+                  return (
+                    <div
+                      key={dateStr}
+                      style={{ width: colWidth }}
+                      className={`shrink-0 flex flex-col items-center justify-center text-center select-none transition-colors ${
+                        !isWorking
+                          ? 'bg-gantt-card/70 text-slate-500 dark:text-slate-400 font-semibold border-x border-gantt-border/40'
+                          : 'text-slate-700 dark:text-slate-300'
+                      } ${isToday ? 'bg-safira-500/10 text-safira-700 dark:text-safira-400 font-bold ring-1 ring-safira-500/30' : ''}`}
+                    >
+                      <span className={`text-[10px] uppercase tracking-wider ${!isWorking ? 'text-slate-400/90 font-bold' : 'font-semibold opacity-70'}`}>
+                        {zoomLevel === 'month' ? (d === '01' ? `${m}/${y.slice(2)}` : '') : dayOfWeek}
+                      </span>
+                      <span className="text-xs font-bold tabular-nums leading-tight">
+                        {zoomLevel === 'month' ? (d === '01' || d === '15' ? d : '') : d}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Task Rows & Interactive Bars */}

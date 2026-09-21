@@ -171,7 +171,7 @@ export const ExecutiveHeader: React.FC<ExecutiveHeaderProps> = ({
       </div>
 
       {/* ==================== ROW 2: CONTROLS & NAVIGATION BAR ==================== */}
-      <div className="w-full max-w-[1750px] mx-auto px-3 py-1.5 sm:px-5 flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar">
+      <div className="w-full max-w-[1750px] mx-auto px-3 py-1.5 sm:px-5 flex items-center gap-2 sm:gap-2.5 overflow-visible relative z-30 flex-wrap sm:flex-nowrap">
         {/* 1. Project Menu */}
         <ProjectMenu
           onOpenBlueprints={onOpenBlueprints}
