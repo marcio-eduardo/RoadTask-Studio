@@ -222,6 +222,10 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
 
     const onMouseMove = (e: MouseEvent) => handleMove(e.clientX);
     const onTouchMove = (e: TouchEvent) => {
+      if (dragState) {
+        // Bloqueia a rolagem nativa da tela/canvas enquanto um bloco está em arraste ativo
+        e.preventDefault();
+      }
       if (e.touches.length > 0) handleMove(e.touches[0].clientX);
     };
 
@@ -232,8 +236,10 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
     if (dragState) {
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', handleEnd);
-      window.addEventListener('touchmove', onTouchMove, { passive: true });
+      // passive: false é obrigatório para permitir e.preventDefault() cancelando o scroll do browser
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
       window.addEventListener('touchend', handleEnd);
+      window.addEventListener('touchcancel', handleEnd);
     }
 
     return () => {
@@ -241,6 +247,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
       window.removeEventListener('mouseup', handleEnd);
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('touchcancel', handleEnd);
     };
   }, [dragState, colWidth, moveTaskDate, resizeTaskDuration, updateTaskProgress, project.tasks]);
 
@@ -592,7 +599,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               });
                             }}
                             title={`${task.name} • Marco (${task.progress === 100 ? 'Concluído' : 'Pendente'})${task.assignee ? ` • ${task.assignee}` : ''} • [Duplo clique para editar]`}
-                            className={`w-7 h-7 rounded-md rotate-45 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg ${
+                            className={`w-7 h-7 rounded-md rotate-45 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg touch-none select-none ${
+                              dragState?.taskId === task.id ? 'scale-125 ring-2 ring-safira-400' : ''
+                            } ${
                               task.progress === 100
                                 ? 'bg-esmeralda-500 text-obsidian-950 shadow-glow-esmeralda'
                                 : 'bg-ouro-500 text-obsidian-950 shadow-glow-ouro'
@@ -659,7 +668,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               ? `${task.color}90`
                               : '#4F46E5',
                           }}
-                          className={`relative w-full h-9 rounded-xl border flex items-center shadow-md cursor-grab active:cursor-grabbing transition-all overflow-visible bg-[#1E293B]/95 backdrop-blur-xs ${
+                          className={`relative w-full h-9 rounded-xl border flex items-center shadow-md cursor-grab active:cursor-grabbing transition-all overflow-visible bg-[#1E293B]/95 backdrop-blur-xs touch-none select-none ${
+                            dragState?.taskId === task.id ? 'scale-[1.02] shadow-2xl z-30 opacity-95 ring-2 ring-safira-400' : ''
+                          } ${
                             task.isCritical ? 'shadow-glow-carmim ring-1 ring-carmim-400/50' : ''
                           } ${isSelected ? 'ring-2 ring-safira-400' : ''}`}
                         >
@@ -717,7 +728,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                             </>
                           )}
 
-                          {/* Right Edge Resize Handle (Touch target 20px wide) */}
+                          {/* Right Edge Resize Handle (Hitbox ampliada para 28px no mobile com touch-none) */}
                           <div
                             onMouseDown={e => {
                               e.stopPropagation();
@@ -744,9 +755,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               });
                             }}
                             title="Arrastar para alterar duração"
-                            className="resize-handle absolute right-0 top-0 bottom-0 w-5 bg-black/25 hover:bg-white/30 cursor-ew-resize flex items-center justify-center group-hover:opacity-100 transition-opacity z-20 rounded-r-xl"
+                            className="resize-handle absolute right-0 top-0 bottom-0 w-7 bg-black/25 hover:bg-white/30 cursor-ew-resize flex items-center justify-center group-hover:opacity-100 transition-opacity z-20 rounded-r-xl touch-none select-none"
                           >
-                            <div className="w-1 h-3.5 bg-white/70 rounded-full pointer-events-none" />
+                            <div className="w-1.5 h-3.5 bg-white/70 rounded-full pointer-events-none" />
                           </div>
                         </div>
                       )}
