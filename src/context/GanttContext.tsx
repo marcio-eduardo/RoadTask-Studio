@@ -12,6 +12,7 @@ import { BLUEPRINTS } from '../data/blueprints';
 import { recalculateProjectCascade, wouldCreateCycle } from '../engine/dependencies';
 import { calculateCriticalPath } from '../engine/criticalPath';
 import { countWorkDaysBetween, ensureWorkDay, calculateEndDate } from '../engine/calendar';
+import { getDefaultHolidays } from '../data/holidaysBR';
 import { saveToWindowsFile, openFromWindowsFile } from '../services/windowsFileSystem';
 
 const STORAGE_KEY = 'vanguard_gantt_projects_v2';
@@ -38,10 +39,12 @@ interface GanttContextType {
   loadBlueprint: (blueprintId: string) => void;
   loadProject: (project: Project) => void;
   updateProjectInfo: (info: Partial<Pick<Project, 'name' | 'clientName' | 'description' | 'targetDate'>>) => void;
+  createNewProject: () => void;
   
   // Windows File System Access
   linkedFileName: string | null;
-  saveToWindows: () => Promise<boolean>;
+  isDirty: boolean;
+  saveToWindows: (forceSaveAs?: boolean | any) => Promise<boolean>;
   openFromWindows: () => Promise<boolean>;
   unlinkWindowsFile: () => void;
 
@@ -117,10 +120,13 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [history, setHistory] = useState<Project[]>([]);
   const [future, setFuture] = useState<Project[]>([]);
 
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+
   // Push history helper
   const pushHistory = useCallback((prevProj: Project) => {
     setHistory(h => [...h.slice(-30), JSON.parse(JSON.stringify(prevProj))]);
     setFuture([]);
+    setIsDirty(true);
   }, []);
 
   // Save to localStorage
@@ -265,14 +271,56 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     pushHistory(project);
     setProject(recomputeProject(p));
     setSelectedTaskId(null);
+    setIsDirty(false);
+  }, [project, pushHistory, recomputeProject]);
+
+  const createNewProject = useCallback(() => {
+    pushHistory(project);
+    const today = new Date().toISOString().split('T')[0];
+    const blank: Project = {
+      id: `proj_${Date.now()}`,
+      name: 'Novo Cronograma',
+      clientName: '',
+      description: '',
+      targetDate: '',
+      timeUnit: 'days',
+      calendar: {
+        includeWeekends: false,
+        saturdayIsWorkday: false,
+        holidays: getDefaultHolidays(),
+        workHoursPerDay: 8,
+      },
+      createdAt: today,
+      updatedAt: today,
+      tasks: [
+        {
+          id: 'phase_1',
+          name: 'Fase 1',
+          type: 'phase',
+          startDate: today,
+          duration: 5,
+          endDate: today,
+          progress: 0,
+          dependencies: [],
+          color: '#0284C7',
+        },
+      ],
+    };
+    setProject(recomputeProject(blank));
+    setActiveFileHandle(null);
+    setLinkedFileName(null);
+    setIsDirty(false);
+    setSelectedTaskId(null);
   }, [project, pushHistory, recomputeProject]);
 
   // Windows File System Access
   const [activeFileHandle, setActiveFileHandle] = useState<FileSystemFileHandle | null>(null);
   const [linkedFileName, setLinkedFileName] = useState<string | null>(null);
 
-  const saveToWindows = useCallback(async () => {
-    const res = await saveToWindowsFile(project, activeFileHandle);
+  const saveToWindows = useCallback(async (forceSaveAs?: boolean | any) => {
+    const isForce = forceSaveAs === true;
+    const handleToUse = isForce ? null : activeFileHandle;
+    const res = await saveToWindowsFile(project, handleToUse);
     if (res.success) {
       if (res.handle) {
         setActiveFileHandle(res.handle);
@@ -280,6 +328,7 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (res.fileName) {
         setLinkedFileName(res.fileName);
       }
+      setIsDirty(false);
       return true;
     }
     return false;
@@ -295,6 +344,7 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (res.fileName) {
         setLinkedFileName(res.fileName);
       }
+      setIsDirty(false);
       return true;
     }
     return false;
@@ -612,8 +662,10 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         loadBlueprint,
         loadProject,
         updateProjectInfo,
+        createNewProject,
 
         linkedFileName,
+        isDirty,
         saveToWindows,
         openFromWindows,
         unlinkWindowsFile,

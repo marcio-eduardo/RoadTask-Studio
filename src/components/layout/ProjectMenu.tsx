@@ -8,9 +8,10 @@ import {
   BookOpen,
   ChevronDown,
   X,
-  HardDrive,
   Cloud,
   Save,
+  FilePlus,
+  FolderDown,
 } from 'lucide-react';
 import { useGantt } from '../../context/GanttContext';
 
@@ -26,7 +27,13 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
   onOpenStorage,
 }) => {
   const { isGuidedMode, toggleGuidedMode } = useGuidedAccess();
-  const { saveToWindows, openFromWindows, linkedFileName } = useGantt();
+  const {
+    saveToWindows,
+    openFromWindows,
+    createNewProject,
+    linkedFileName,
+    isDirty,
+  } = useGantt();
   const [isOpen, setIsOpen] = useState(false);
   const [showConcepts, setShowConcepts] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +60,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
 
   return (
     <div className="relative inline-block" ref={containerRef}>
-      {/* Unified Project Menu Button */}
+      {/* Botão Principal do Menu Projeto */}
       <button
         type="button"
         onClick={() => setIsOpen(prev => !prev)}
@@ -62,7 +69,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
             ? 'bg-obsidian-850 border-safira-500 text-white shadow-glow-safira'
             : 'bg-obsidian-900 hover:bg-obsidian-850 border-obsidian-800 text-slate-200 hover:text-white'
         }`}
-        title="Menu de Projeto, Modelos, Armazenamento e Exportação"
+        title="Menu de Projeto, Armazenamento e Exportação"
         aria-expanded={isOpen}
       >
         <Folder className="w-3.5 h-3.5 text-safira-400 shrink-0" />
@@ -73,18 +80,21 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
           }`}
         />
         {linkedFileName && (
-          <span className="w-2 h-2 rounded-full bg-esmeralda-400" title={`Arquivo vinculado: ${linkedFileName}`} />
+          <span
+            className={`w-2 h-2 rounded-full ${isDirty ? 'bg-ouro-400 animate-pulse' : 'bg-esmeralda-400'}`}
+            title={`Arquivo vinculado: ${linkedFileName} (${isDirty ? 'Alterações não salvas' : 'Salvo'})`}
+          />
         )}
         {isGuidedMode && (
           <span className="w-1.5 h-1.5 rounded-full bg-safira-400 animate-ping" />
         )}
       </button>
 
-      {/* 100% Solid Opaque Dropdown Popover */}
+      {/* Popover Minimalista Opaque (Layout02) */}
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-80 sm:w-88 bg-[#0B1120] border border-obsidian-750 rounded-2xl p-2 shadow-2xl shadow-black ring-1 ring-white/10 z-50 animate-in fade-in zoom-in-95">
-          {/* Header */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-obsidian-800">
+        <div className="absolute left-0 mt-2 w-64 bg-[#0B1120] border border-obsidian-750 rounded-2xl p-1.5 shadow-2xl shadow-black ring-1 ring-white/10 z-50 animate-in fade-in zoom-in-95">
+          {/* Cabeçalho */}
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-obsidian-800/80 mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Opções do Projeto
             </span>
@@ -97,159 +107,173 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
             </button>
           </div>
 
-          {/* Section 1: Storage Actions (Windows & Cloud) */}
-          <div className="p-1 space-y-1">
-            {/* Salvar no Windows */}
+          {/* Grupo de Ações Principais (Minimalistas) */}
+          <div className="space-y-0.5">
+            {/* Novo */}
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
-                saveToWindows();
+                createNewProject();
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 transition-colors cursor-pointer group"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 hover:text-white transition-colors cursor-pointer group"
             >
-              <div className="w-7 h-7 rounded-lg bg-safira-500/10 border border-safira-500/30 flex items-center justify-center text-safira-400 shrink-0">
-                <Save className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white block">Salvar no Windows</span>
-                  <span className="text-[10px] font-mono text-slate-400 bg-obsidian-850 px-1 py-0.5 rounded border border-obsidian-750">Ctrl+S</span>
-                </div>
-                <span className="text-[10.5px] text-slate-400 block truncate">
-                  {linkedFileName ? `Salvar em: ${linkedFileName}` : 'Escolher pasta no Windows Explorer'}
-                </span>
+              <div className="flex items-center gap-2.5">
+                <FilePlus className="w-4 h-4 text-safira-400 group-hover:text-safira-300 transition-colors shrink-0" />
+                <span className="text-xs font-medium">Novo</span>
               </div>
             </button>
 
-            {/* Abrir do Windows */}
+            {/* Abrir */}
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 openFromWindows();
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 hover:text-white transition-colors cursor-pointer group"
             >
-              <div className="w-7 h-7 rounded-lg bg-ouro-500/10 border border-ouro-500/30 flex items-center justify-center text-ouro-400 shrink-0">
-                <HardDrive className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-white block">Abrir do Windows</span>
-                <span className="text-[10.5px] text-slate-400 block truncate">
-                  Carregar arquivo .roadtask.json do computador
-                </span>
+              <div className="flex items-center gap-2.5">
+                <FolderOpen className="w-4 h-4 text-ouro-400 group-hover:text-ouro-300 transition-colors shrink-0" />
+                <span className="text-xs font-medium">Abrir</span>
               </div>
             </button>
 
-            {/* Nuvem & Backend Python */}
+            {/* Salvar */}
+            <button
+              type="button"
+              disabled={linkedFileName ? !isDirty : false}
+              onClick={() => {
+                setIsOpen(false);
+                saveToWindows(false);
+              }}
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left transition-colors ${
+                linkedFileName && !isDirty
+                  ? 'opacity-40 cursor-not-allowed text-slate-400'
+                  : 'hover:bg-obsidian-800 text-slate-200 hover:text-white cursor-pointer group'
+              }`}
+              title={
+                linkedFileName && !isDirty
+                  ? 'Documento já está salvo e sem alterações pendentes'
+                  : 'Salvar alterações no arquivo (Ctrl+S)'
+              }
+            >
+              <div className="flex items-center gap-2.5">
+                <Save className="w-4 h-4 text-esmeralda-400 group-hover:text-esmeralda-300 transition-colors shrink-0" />
+                <span className="text-xs font-medium">Salvar</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400 bg-obsidian-850 px-1 py-0.5 rounded border border-obsidian-750">
+                Ctrl+S
+              </span>
+            </button>
+
+            {/* Salvar como */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                saveToWindows(true);
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 hover:text-white transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <FolderDown className="w-4 h-4 text-safira-400 group-hover:text-safira-300 transition-colors shrink-0" />
+                <span className="text-xs font-medium">Salvar como</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Divisor */}
+          <div className="border-t border-obsidian-800/80 my-1" />
+
+          {/* Grupo de Integrações & Exportação */}
+          <div className="space-y-0.5">
+            {/* Sincronizar */}
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 onOpenStorage('cloud');
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 hover:text-white transition-colors cursor-pointer group"
             >
-              <div className="w-7 h-7 rounded-lg bg-esmeralda-500/10 border border-esmeralda-500/30 flex items-center justify-center text-esmeralda-400 shrink-0">
-                <Cloud className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-white block">Sincronizar Nuvem / Python</span>
-                <span className="text-[10.5px] text-slate-400 block truncate">
-                  FastAPI + NoSQL (Docker ou Vercel)
-                </span>
-              </div>
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-obsidian-800 my-1" />
-
-          {/* Section 2: Blueprints & Export */}
-          <div className="p-1 space-y-1">
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                onOpenBlueprints();
-              }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 transition-colors cursor-pointer"
-            >
-              <div className="w-7 h-7 rounded-lg bg-safira-500/10 border border-safira-500/30 flex items-center justify-center text-safira-400 shrink-0">
-                <FolderOpen className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-white block">Modelos de Engenharia</span>
-                <span className="text-[10.5px] text-slate-400 block truncate">
-                  Carregar SGFrotas, Ágil, Infra ou Roadmap
-                </span>
+              <div className="flex items-center gap-2.5">
+                <Cloud className="w-4 h-4 text-esmeralda-400 group-hover:text-esmeralda-300 transition-colors shrink-0" />
+                <span className="text-xs font-medium">Sincronizar</span>
               </div>
             </button>
 
+            {/* Exportar */}
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 onOpenExport();
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 hover:text-white transition-colors cursor-pointer group"
             >
-              <div className="w-7 h-7 rounded-lg bg-obsidian-800 border border-obsidian-750 flex items-center justify-center text-slate-300 shrink-0">
-                <Download className="w-4 h-4" />
+              <div className="flex items-center gap-2.5">
+                <Download className="w-4 h-4 text-slate-300 group-hover:text-white transition-colors shrink-0" />
+                <span className="text-xs font-medium">Exportar</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-white block">Exportar Cronograma</span>
-                <span className="text-[10.5px] text-slate-400 block truncate">
-                  PDF A4, PNG 4K, Mermaid e JSON
-                </span>
+            </button>
+
+            {/* Modelos */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onOpenBlueprints();
+              }}
+              className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-obsidian-800 text-slate-200 hover:text-white transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <Sparkles className="w-4 h-4 text-ouro-400 group-hover:text-ouro-300 transition-colors shrink-0" />
+                <span className="text-xs font-medium">Modelos</span>
               </div>
             </button>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-obsidian-800 my-1" />
+          {/* Divisor */}
+          <div className="border-t border-obsidian-800/80 my-1" />
 
-          {/* Section 2: Guided Access Toggle */}
-          <div className="p-2 rounded-xl bg-obsidian-950 border border-obsidian-800/80 mx-1 mb-1">
+          {/* Acesso Guiado */}
+          <div className="p-2 rounded-xl bg-obsidian-950 border border-obsidian-800/80 my-0.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-safira-400 shrink-0" />
-                <div>
-                  <span className="text-xs font-bold text-white block">Acesso Guiado</span>
-                  <span className="text-[10px] text-slate-400">Animações ao passar o mouse</span>
-                </div>
+                <Sparkles className="w-3.5 h-3.5 text-safira-400 shrink-0" />
+                <span className="text-[11px] font-medium text-slate-200">Acesso Guiado</span>
               </div>
 
               {/* Switch */}
               <button
                 type="button"
                 onClick={toggleGuidedMode}
-                className={`relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                className={`relative inline-flex h-4 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   isGuidedMode ? 'bg-safira-500' : 'bg-obsidian-750'
                 }`}
                 role="switch"
                 aria-checked={isGuidedMode}
               >
                 <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    isGuidedMode ? 'translate-x-5' : 'translate-x-0'
+                  className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    isGuidedMode ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
               </button>
             </div>
           </div>
 
-          {/* Section 3: Collapsible Concepts & Shortcuts */}
-          <div className="p-1 space-y-1">
+          {/* Glossário & Atalhos Recolhido */}
+          <div>
             <button
               type="button"
               onClick={() => setShowConcepts(v => !v)}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left hover:bg-obsidian-800 text-slate-400 hover:text-slate-200 text-xs transition-colors"
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-obsidian-800 text-slate-400 hover:text-slate-200 text-[11px] transition-colors"
             >
-              <span className="flex items-center gap-1.5 font-semibold">
+              <span className="flex items-center gap-1.5 font-medium">
                 <BookOpen className="w-3.5 h-3.5 text-ouro-400" />
-                <span>Glossário de Gantt & Atalhos</span>
+                <span>Glossário & Atalhos</span>
               </span>
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform ${showConcepts ? 'rotate-180' : ''}`}
@@ -257,17 +281,18 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
             </button>
 
             {showConcepts && (
-              <div className="p-2 space-y-1.5 bg-obsidian-950 rounded-xl border border-obsidian-800 text-[10.5px]">
+              <div className="p-2 mt-1 space-y-1 bg-obsidian-950 rounded-xl border border-obsidian-800 text-[10px] text-slate-300">
                 <p>
                   <strong className="text-carmim-400">Caminho Crítico (CPM):</strong> Sequência inadiável com folga zero.
                 </p>
                 <p>
-                  <strong className="text-safira-400">Encadeamento FS:</strong> Tarefa subsequente inicia no próximo dia útil.
+                  <strong className="text-safira-400">Encadeamento FS:</strong> Tarefa inicia no próximo dia útil.
                 </p>
                 <p>
-                  <strong className="text-ouro-400">Marcos:</strong> Ponto focal com duração 0d (diamante dourado).
+                  <strong className="text-ouro-400">Marcos:</strong> Ponto focal com duração 0d.
                 </p>
-                <div className="pt-1.5 border-t border-obsidian-800 flex items-center justify-between text-slate-400 text-[10px]">
+                <div className="pt-1 border-t border-obsidian-800/80 flex items-center justify-between text-slate-400 text-[9.5px]">
+                  <span>Ctrl+S (Salvar)</span>
                   <span>Ctrl+Z (Desfazer)</span>
                   <span>Ctrl+P (Pitch)</span>
                 </div>
