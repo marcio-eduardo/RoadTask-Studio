@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
-  # Backend API em Python (FastAPI) com Supabase & Fallback Local
+  # ----------------------------------------------------------------------------
+  # Backend API em Python (FastAPI + Supabase)
+  # ----------------------------------------------------------------------------
   backend:
     build:
       context: ./backend
@@ -10,9 +12,33 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       - SUPABASE_URL=${SUPABASE_URL:-}
-      - SUPABASE_KEY=${SUPABASE_KEY:-}
-      - SUPABASE_TABLE=projects
+      - SUPABASE_KEY=${SUPABASE_SECRET_KEY:-${SUPABASE_KEY:-}}
+      - SUPABASE_TABLE=${SUPABASE_TABLE:-projects}
     volumes:
       - ./backend/data:/app/data
+    networks:
+      - roadtask_network
+
+  # ----------------------------------------------------------------------------
+  # Frontend Web (React 18 + Vite + Nginx com Proxy Reverso)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: roadtask_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - roadtask_network
+
+networks:
+  roadtask_network:
+    driver: bridge

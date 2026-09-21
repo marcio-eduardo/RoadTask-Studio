@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.agents
+.gemini
+walkthrough
+*.log
+.env
+.env.*
+!.env.example
+__pycache__
+backend/__pycache__
+backend/data

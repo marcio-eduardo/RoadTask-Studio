@@ -1,4 +1,4 @@
-# Logs
+# Logs e relatórios de execução
 logs
 *.log
 npm-debug.log*
@@ -7,29 +7,27 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Runtime data
+# Dados de tempo de execução e processos
 pids
 *.pid
 *.seed
 *.pid.lock
 
-# Dependency directories
+# Diretórios de dependências
 node_modules/
 jspm_packages/
 
-# Build outputs
+# Arquivos compilados e saídas de build
 dist/
 dist-ssr/
 *.local
 
-# Environment variables
+# Variáveis de ambiente e credenciais secretas
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
 
-# Python & Backend
+# Python, Caches e Backend
 __pycache__/
 *.py[cod]
 *$py.class
@@ -42,7 +40,7 @@ venv/
 env/
 .env/
 
-# Editor directories and files
+# Configurações de editores e sistema operacional
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -52,3 +50,22 @@ env/
 *.njsproj
 *.sln
 *.sw?
+
+# Inteligência Artificial & Assistentes de Código (Antigravity, Gemini, Cursor, Copilot, Windsurf, Claude, Aider)
+.agents/
+.gemini/
+.system_generated/
+walkthrough/
+.cursor/
+.cursorrules
+.windsurf/
+.windsurfrules
+.claude/
+.anthropic/
+.copilot/
+.github/copilot-instructions.md
+.aider*
+chat-history/
+docs/implementation_plan.md
+docs/tasks.md
+docs/Scratch/
