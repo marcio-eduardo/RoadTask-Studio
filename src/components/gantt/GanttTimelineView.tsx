@@ -255,11 +255,11 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
   const totalHeight = headerHeight + displayTasks.length * rowHeight + 40;
 
   return (
-    <div className="flex-1 flex flex-col bg-obsidian-950 overflow-hidden relative select-none">
+    <div className="flex-1 flex flex-col bg-gantt-canvas overflow-hidden relative select-none transition-colors duration-200">
       {/* Scrollable Canvas Container */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-obsidian-750 scrollbar-track-obsidian-900"
+        className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-gantt-border scrollbar-track-gantt-canvas"
       >
         <div
           style={{
@@ -272,14 +272,14 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
           {hasPhases && (
             <div
               style={{ width: phaseColWidth }}
-              className="sticky left-0 z-30 shrink-0 bg-obsidian-900/98 backdrop-blur-md border-r border-obsidian-750 flex flex-col shadow-lg"
+              className="sticky left-0 z-30 shrink-0 bg-gantt-card/95 backdrop-blur-md border-r border-gantt-border flex flex-col shadow-lg transition-colors"
             >
               {/* Sticky Top Header Cell for Phases */}
               <div
                 style={{ height: headerHeight }}
-                className="sticky top-0 z-40 bg-obsidian-850 border-b border-obsidian-750 flex items-center justify-center px-3 shadow-xs"
+                className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex items-center justify-center px-3 transition-colors"
               >
-                <span className="text-xs font-black uppercase tracking-wider text-slate-300">
+                <span className="text-xs font-black uppercase tracking-wider text-gantt-text-secondary">
                   Fase
                 </span>
               </div>
@@ -288,23 +288,36 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
               {phaseSections.map(sec => (
                 <div
                   key={sec.id}
-                  style={{ height: sec.height }}
-                  className="border-b border-obsidian-750/80 flex flex-col items-center justify-center px-3 text-center relative select-none"
+                  style={{
+                    height: sec.height,
+                    background: sec.color
+                      ? `linear-gradient(90deg, ${sec.color}15 0%, transparent 100%)`
+                      : undefined,
+                  }}
+                  title={sec.subtitle ? `${sec.name} - ${sec.subtitle}` : sec.name}
+                  className="border-b border-gantt-border flex flex-col items-center justify-center px-2.5 text-center relative select-none overflow-hidden transition-colors"
                 >
                   {/* Left accent bar with section color */}
                   <div
-                    className="absolute left-0 top-2 bottom-2 w-1.5 rounded-r"
-                    style={{ backgroundColor: sec.color || '#0284C7' }}
+                    className="absolute left-0 top-1.5 bottom-1.5 w-1.5 rounded-r shadow-xs"
+                    style={{ backgroundColor: sec.color || 'var(--gantt-phase-1-accent)' }}
                   />
-                  <span className="text-xs font-black text-white uppercase tracking-wider">
+                  <span className="text-xs font-black text-gantt-text-primary uppercase tracking-wider truncate max-w-full">
                     {sec.shortName}
                   </span>
-                  {sec.subtitle && (
-                    <span className="text-[10px] text-slate-400 mt-1 line-clamp-2 leading-tight">
+                  {sec.height >= 72 && sec.subtitle && (
+                    <span className="text-[10px] text-gantt-text-secondary mt-0.5 line-clamp-2 leading-tight">
                       {sec.subtitle}
                     </span>
                   )}
-                  <span className="text-[9px] font-semibold text-safira-400 mt-1.5 bg-safira-500/10 px-1.5 py-0.5 rounded border border-safira-500/20">
+                  <span
+                    className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded-md border shrink-0 transition-colors"
+                    style={{
+                      backgroundColor: sec.color ? `${sec.color}18` : 'rgba(8, 145, 178, 0.12)',
+                      borderColor: sec.color ? `${sec.color}35` : 'rgba(8, 145, 178, 0.25)',
+                      color: sec.color || 'var(--gantt-accent-focus)',
+                    }}
+                  >
                     {sec.rowCount} {sec.rowCount === 1 ? 'item' : 'itens'}
                   </span>
                 </div>
@@ -334,7 +347,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                   markerHeight="6"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#38BDF8" />
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--gantt-dependency-line)" />
                 </marker>
 
                 {/* Critical arrowhead */}
@@ -351,12 +364,17 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                 </marker>
 
                 {/* Weekend / Holiday Hatch Pattern */}
-                <pattern id="weekend-hatch" width="8" height="8" patternUnits="userSpaceOnUse">
-                  <path d="M-2,2 l4,-4 M0,8 l8,-8 M6,10 l4,-4" stroke="#1E293B" strokeWidth="1" opacity="0.6" />
+                <pattern id="weekend-hatch" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <path
+                    d="M-2,2 l4,-4 M0,10 l10,-10 M8,12 l4,-4"
+                    stroke="var(--gantt-weekend-stripe)"
+                    strokeWidth="1"
+                    opacity="0.85"
+                  />
                 </pattern>
               </defs>
 
-              {/* Section Shading Bands (Alternating swimlane tints matching Mermaid reference) */}
+              {/* Section Shading Bands */}
               {phaseSections.map((sec, sIdx) => {
                 const isEven = sIdx % 2 === 0;
                 return (
@@ -366,7 +384,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                     y={sec.topY}
                     width={Math.max(totalWidth, 1000)}
                     height={sec.height}
-                    fill={isEven ? 'rgba(56, 189, 248, 0.05)' : 'rgba(15, 23, 42, 0.25)'}
+                    fill={sec.color ? `${sec.color}06` : isEven ? 'var(--gantt-row-even)' : 'var(--gantt-row-odd)'}
                   />
                 );
               })}
@@ -380,14 +398,22 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                   <g key={dateStr}>
                     {/* Weekend / Non-working shading */}
                     {!isWorking && (
-                      <rect
-                        x={x}
-                        y={headerHeight}
-                        width={colWidth}
-                        height={totalHeight - headerHeight}
-                        fill="url(#weekend-hatch)"
-                        opacity="0.7"
-                      />
+                      <g>
+                        <rect
+                          x={x}
+                          y={headerHeight}
+                          width={colWidth}
+                          height={totalHeight - headerHeight}
+                          fill="var(--gantt-weekend-bg)"
+                        />
+                        <rect
+                          x={x}
+                          y={headerHeight}
+                          width={colWidth}
+                          height={totalHeight - headerHeight}
+                          fill="url(#weekend-hatch)"
+                        />
+                      </g>
                     )}
 
                     {/* Vertical grid line */}
@@ -396,8 +422,8 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                       y1={0}
                       x2={x}
                       y2={totalHeight}
-                      stroke="#1E293B"
-                      strokeWidth="1"
+                      stroke="var(--gantt-grid-lines)"
+                      strokeWidth="0.75"
                       opacity={zoomLevel === 'month' ? '0.2' : '0.5'}
                     />
                   </g>
@@ -414,13 +440,13 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                     y1={y}
                     x2={totalWidth}
                     y2={y}
-                    stroke="#162036"
-                    strokeWidth="1"
+                    stroke="var(--gantt-border-subtle)"
+                    strokeWidth="0.75"
                   />
                 );
               })}
 
-              {/* Strong Section Separator Lines */}
+              {/* Section Separator Lines (Atenuadas) */}
               {phaseSections.map(sec => (
                 <line
                   key={`sep-${sec.id}`}
@@ -428,12 +454,13 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                   y1={sec.topY + sec.height}
                   x2={Math.max(totalWidth, 1000)}
                   y2={sec.topY + sec.height}
-                  stroke="#334155"
-                  strokeWidth="1.5"
+                  stroke="var(--gantt-border-subtle)"
+                  strokeWidth="0.75"
+                  opacity="0.6"
                 />
               ))}
 
-              {/* Reference Date Line (Red indicator like reference image) */}
+              {/* Reference Date Line */}
               {todayX >= 0 && todayX <= totalWidth && (
                 <g>
                   <line
@@ -441,11 +468,11 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                     y1={0}
                     x2={todayX}
                     y2={totalHeight}
-                    stroke="#EF4444"
-                    strokeWidth="2.5"
+                    stroke="var(--gantt-accent-today)"
+                    strokeWidth="1.5"
+                    opacity="0.8"
                   />
-                  <circle cx={todayX} cy={headerHeight - 8} r="5" fill="#EF4444" className="animate-ping opacity-75" />
-                  <circle cx={todayX} cy={headerHeight - 8} r="3" fill="#EF4444" />
+                  <circle cx={todayX} cy={headerHeight - 8} r="3" fill="var(--gantt-accent-today)" opacity="0.85" />
                 </g>
               )}
 
@@ -475,11 +502,11 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                       key={`${dep.targetTaskId}->${succTask.id}`}
                       d={pathD}
                       fill="none"
-                      stroke={isCritLine ? '#FB7185' : '#38BDF8'}
-                      strokeWidth={isCritLine ? '2.5' : '1.8'}
+                      stroke={isCritLine ? '#F43F5E' : 'var(--gantt-connector)'}
+                      strokeWidth={isCritLine ? '2' : '1.3'}
                       strokeDasharray={predX > succX ? '4 2' : undefined}
                       markerEnd={isCritLine ? 'url(#arrowhead-crit)' : 'url(#arrowhead)'}
-                      opacity="0.85"
+                      opacity="0.55"
                     />
                   );
                 });
@@ -488,7 +515,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
 
             {/* Sticky Time Header */}
             <div
-              className="sticky top-0 z-20 bg-obsidian-900/95 backdrop-blur border-b border-obsidian-750 flex shadow-sm"
+              className="sticky top-0 z-20 bg-gantt-header/95 backdrop-blur border-b border-gantt-border flex transition-colors"
               style={{ height: headerHeight, width: totalWidth }}
             >
               {timelineDates.map(dateStr => {
@@ -501,11 +528,13 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                   <div
                     key={dateStr}
                     style={{ width: colWidth }}
-                    className={`shrink-0 flex flex-col items-center justify-center border-r border-obsidian-800 text-center select-none ${
-                      !isWorking ? 'bg-obsidian-950/40 text-slate-500' : 'text-slate-300'
-                    } ${isToday ? 'bg-safira-950/40 text-safira-300 font-bold' : ''}`}
+                    className={`shrink-0 flex flex-col items-center justify-center text-center select-none transition-colors ${
+                      !isWorking
+                        ? 'bg-gantt-card/70 text-slate-500 dark:text-slate-400 font-semibold border-x border-gantt-border/40'
+                        : 'text-slate-700 dark:text-slate-300'
+                    } ${isToday ? 'bg-safira-500/10 text-safira-700 dark:text-safira-400 font-bold ring-1 ring-safira-500/30' : ''}`}
                   >
-                    <span className="text-[10px] uppercase tracking-wider font-semibold opacity-70">
+                    <span className={`text-[10px] uppercase tracking-wider ${!isWorking ? 'text-slate-400/90 font-bold' : 'font-semibold opacity-70'}`}>
                       {zoomLevel === 'month' ? (d === '01' ? `${m}/${y.slice(2)}` : '') : dayOfWeek}
                     </span>
                     <span className="text-xs font-bold tabular-nums">
@@ -530,9 +559,8 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                   <div
                     key={task.id}
                     style={{ height: rowHeight, top: topY }}
-                    className={`absolute left-0 right-0 flex items-center transition-colors ${
-                      isSelected ? 'bg-safira-500/10' : idx % 2 === 0 ? 'bg-transparent' : 'bg-obsidian-900/15'
-                    }`}
+                    className={`absolute left-0 right-0 flex items-center transition-colors ${isSelected ? 'bg-safira-500/10' : idx % 2 === 0 ? 'bg-transparent' : 'bg-gantt-card/40'
+                      }`}
                     onClick={() => {
                       setSelectedTaskId(task.id);
                     }}
@@ -543,9 +571,8 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                         left: startX,
                         width: width,
                       }}
-                      className={`absolute flex items-center group cursor-pointer transition-shadow ${
-                        isMilestone ? 'justify-center' : ''
-                      }`}
+                      className={`absolute flex items-center group cursor-pointer transition-shadow ${isMilestone ? 'justify-center' : ''
+                        }`}
                     >
                       {/* Ghost Baseline Bar (rendered if What-If simulation has baseline) */}
                       {simulation.isActive && task.baseline && (
@@ -599,13 +626,11 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               });
                             }}
                             title={`${task.name} • Marco (${task.progress === 100 ? 'Concluído' : 'Pendente'})${task.assignee ? ` • ${task.assignee}` : ''} • [Duplo clique para editar]`}
-                            className={`w-7 h-7 rounded-md rotate-45 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-lg touch-none select-none ${
-                              dragState?.taskId === task.id ? 'scale-125 ring-2 ring-safira-400' : ''
-                            } ${
-                              task.progress === 100
-                                ? 'bg-esmeralda-500 text-obsidian-950 shadow-glow-esmeralda'
-                                : 'bg-ouro-500 text-obsidian-950 shadow-glow-ouro'
-                            }`}
+                            className={`w-7 h-7 rounded-md rotate-45 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-xs touch-none select-none ${dragState?.taskId === task.id ? 'scale-115 ring-1 ring-safira-400' : ''
+                              } ${task.progress === 100
+                                ? 'bg-esmeralda-600 text-white'
+                                : 'bg-ouro-500/90 text-obsidian-950'
+                              }`}
                           >
                             <Diamond className="w-4 h-4 -rotate-45" />
                           </div>
@@ -615,7 +640,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                             <span className="text-xs font-bold text-ouro-300 drop-shadow-md">
                               {task.name}
                             </span>
-                            <span className="text-[10px] font-medium text-slate-400 bg-obsidian-900/90 px-1.5 py-0.5 rounded border border-obsidian-750">
+                            <span className="text-[10px] font-medium text-gantt-muted bg-gantt-card px-1.5 py-0.5 rounded border border-gantt-border shadow-xs">
                               Marco
                             </span>
                           </div>
@@ -660,68 +685,64 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                           }}
                           title={`${task.name} • ${task.duration} dias úteis (${task.progress}% concluído)${task.assignee ? ` • ${task.assignee}` : ''} • [Duplo clique para editar]`}
                           style={{
+                            backgroundColor: task.color ? `${task.color}25` : 'var(--gantt-bar-empty-bg)',
                             borderColor: task.isCritical
-                              ? '#F43F5E'
+                              ? 'var(--gantt-critical-alert, rgba(244, 63, 94, 0.55))'
                               : isSelected
-                              ? '#38BDF8'
-                              : task.color
-                              ? `${task.color}90`
-                              : '#4F46E5',
+                                ? 'var(--gantt-accent-focus, rgba(8, 145, 178, 0.75))'
+                                : task.color
+                                  ? `${task.color}45`
+                                  : 'var(--gantt-bar-empty-border)',
                           }}
-                          className={`relative w-full h-9 rounded-xl border flex items-center shadow-md cursor-grab active:cursor-grabbing transition-all overflow-visible bg-[#1E293B]/95 backdrop-blur-xs touch-none select-none ${
-                            dragState?.taskId === task.id ? 'scale-[1.02] shadow-2xl z-30 opacity-95 ring-2 ring-safira-400' : ''
-                          } ${
-                            task.isCritical ? 'shadow-glow-carmim ring-1 ring-carmim-400/50' : ''
-                          } ${isSelected ? 'ring-2 ring-safira-400' : ''}`}
+                          className={`relative w-full h-9 rounded-xl border flex items-center shadow-xs cursor-grab active:cursor-grabbing transition-all overflow-visible touch-none select-none ${dragState?.taskId === task.id ? 'scale-[1.01] shadow-lg z-30 opacity-95 ring-1 ring-safira-500/40' : ''
+                            } ${task.isCritical ? 'ring-1 ring-carmim-500/30' : ''
+                            } ${isSelected ? 'ring-1 ring-safira-500/40' : ''}`}
                         >
-                          {/* Progress Fill Indicator (Preenchimento elegante) */}
-                          <div
-                            style={{
-                              width: `${task.progress > 0 ? task.progress : 0}%`,
-                              backgroundColor: task.color || '#4F46E5',
-                            }}
-                            className={`absolute left-0 top-0 bottom-0 transition-all ${
-                              task.progress === 100 ? 'rounded-xl' : 'rounded-l-xl'
-                            }`}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/20 pointer-events-none" />
-                          </div>
-
-                          {/* Base subtle background if 0% progress */}
-                          {task.progress === 0 && (
+                          {/* Progress Fill Indicator (Preenchimento progressivo conforme avança até 100%) */}
+                          {task.progress > 0 && (
                             <div
-                              style={{ backgroundColor: task.color ? `${task.color}30` : 'rgba(79, 70, 229, 0.35)' }}
-                              className="absolute inset-0 rounded-xl pointer-events-none"
-                            />
+                              style={{
+                                width: `${Math.min(100, Math.max(0, task.progress))}%`,
+                                backgroundColor: task.color || '#4F46E5',
+                              }}
+                              className={`absolute left-0 top-0 bottom-0 transition-all ${task.progress >= 100 ? 'rounded-xl' : 'rounded-l-xl'
+                                }`}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/20 pointer-events-none" />
+                            </div>
                           )}
 
                           {/* Task Title & Meta Label Inside Bar (quando barra for larga) */}
                           {!isNarrow && (
-                            <div className="relative z-10 px-3 flex items-center gap-2 text-xs font-bold text-white truncate pointer-events-none w-full min-w-0">
+                            <div className={`relative z-10 px-3 flex items-center gap-2 text-xs font-bold ${
+                              task.progress >= 60 ? 'text-white' : 'text-slate-800 dark:text-white'
+                            } drop-shadow-sm truncate pointer-events-none w-full min-w-0`}>
                               {task.isCritical && (
-                                <Flame className="w-3.5 h-3.5 text-carmim-300 animate-pulse shrink-0" />
+                                <Flame className="w-3.5 h-3.5 text-carmim-400 animate-pulse shrink-0" />
                               )}
                               <span className="truncate">{task.name}</span>
-                              <span className="text-[10px] font-medium text-slate-200/90 shrink-0 tabular-nums bg-black/40 px-1.5 py-0.5 rounded border border-white/10">
+                              <span className="text-[10px] font-semibold text-slate-700 dark:text-white shrink-0 tabular-nums bg-slate-900/10 dark:bg-black/40 px-1.5 py-0.5 rounded border border-gantt-border shadow-xs">
                                 {task.duration}d{task.progress > 0 ? ` (${task.progress}%)` : ''}
                               </span>
                             </div>
                           )}
 
-                          {/* Short bar: Label to the Right (conforme exibição da imagem de referência) */}
+                          {/* Short bar: Label to the Right */}
                           {isNarrow && (
                             <>
-                              <div className="relative z-10 px-2 flex items-center justify-center pointer-events-none w-full text-[10px] font-bold text-white">
+                              <div className={`relative z-10 px-2 flex items-center justify-center pointer-events-none w-full text-[10px] font-bold ${
+                                task.progress >= 60 ? 'text-white' : 'text-slate-800 dark:text-white'
+                              } drop-shadow-sm`}>
                                 {task.duration}d
                               </div>
                               <div className="absolute left-full ml-2.5 flex items-center gap-1.5 whitespace-nowrap pointer-events-none z-20">
                                 {task.isCritical && (
-                                  <Flame className="w-3.5 h-3.5 text-carmim-300 animate-pulse shrink-0" />
+                                  <Flame className="w-3.5 h-3.5 text-carmim-400 animate-pulse shrink-0" />
                                 )}
-                                <span className="text-xs font-bold text-slate-100 drop-shadow-md">
+                                <span className="text-xs font-bold text-gantt-text-primary drop-shadow-md">
                                   {task.name}
                                 </span>
-                                <span className="text-[10px] font-medium text-slate-400 bg-obsidian-900/90 px-1.5 py-0.5 rounded border border-obsidian-750">
+                                <span className="text-[10px] font-medium text-gantt-text-secondary bg-gantt-card/90 px-1.5 py-0.5 rounded border border-gantt-border shadow-xs">
                                   {task.duration}d{task.progress > 0 ? ` (${task.progress}%)` : ''}
                                 </span>
                               </div>

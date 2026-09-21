@@ -4,63 +4,85 @@
 
 @layer base {
   html {
-    color-scheme: dark;
     -webkit-tap-highlight-color: transparent;
   }
 
-  body {
-    touch-action: manipulation;
+  /* Scrollbars adaptáveis ao tema */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--gantt-bg-canvas);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--gantt-border-subtle);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--gantt-accent-focus);
   }
 }
 
-/* Custom subtle scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0A0F1D;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #202E52;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #38BDF8;
-}
-
-/* Print Styles for Executive A4 Landscape */
+/* ==========================================================================
+   ESTILOS DE IMPRESSÃO / EXPORTAÇÃO PDF A4 PAISAGEM
+   ========================================================================== */
 @media print {
-  html,
-  body {
-    background: #ffffff !important;
-    color: #0f172a !important;
+  @page {
+    size: A4 landscape;
+    margin: 8mm 10mm;
+  }
+
+  *,
+  *:before,
+  *:after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
+  html,
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   .no-print,
   nav,
-  button.no-print {
+  header,
+  .print-hidden,
+  button,
+  [role="dialog"] {
     display: none !important;
   }
 
   .print-only {
     display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
   }
 
-  @page {
-    size: landscape;
-    margin: 8mm 10mm;
-  }
-
-  tr,
-  .print-break-avoid {
+  .print-break-inside-avoid {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
+
+  .print-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
 }
 
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}

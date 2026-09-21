@@ -63,6 +63,10 @@ interface GanttContextType {
   applySimulation: () => void;
   discardSimulation: () => void;
 
+  // Theme (Dark / Light)
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
+
   // Undo / Redo
   undo: () => void;
   redo: () => void;
@@ -108,6 +112,31 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('day');
   const [isPitchMode, setIsPitchMode] = useState<boolean>(false);
+
+  // Theme State (Dark / Light)
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const saved = localStorage.getItem('roadtask-theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch {}
+    return 'light';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    try {
+      localStorage.setItem('roadtask-theme', theme);
+    } catch {}
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
 
   // Simulation State
   const [simulation, setSimulation] = useState<SimulationState>({
@@ -685,6 +714,9 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         undo,
         redo,
+
+        theme,
+        toggleTheme,
       }}
     >
       {children}

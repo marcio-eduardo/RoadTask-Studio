@@ -35,7 +35,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-gantt-canvas text-gantt-text-primary flex flex-col font-sans transition-colors duration-200">
       {/* ======================= CONTROLES DE TELA (NO-PRINT) ======================= */}
       <div className="no-print flex flex-col">
         {/* Executive Header (normal no modo editor, ou PitchHeader limpo no modo apresentação) */}

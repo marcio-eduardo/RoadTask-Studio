@@ -183,7 +183,7 @@ export const RoadTaskLogo: React.FC<RoadTaskLogoProps> = ({
       {showText && (
         <div className="flex flex-col leading-none">
           <div className="flex items-center gap-1">
-            <span className={`font-black tracking-wider text-white uppercase ${iconDimensions.textClass}`}>
+            <span className={`font-black tracking-wider text-gantt-text-primary uppercase ${iconDimensions.textClass}`}>
               ROADTASK
             </span>
             <span
@@ -193,7 +193,7 @@ export const RoadTaskLogo: React.FC<RoadTaskLogoProps> = ({
             </span>
           </div>
           {size !== 'sm' && (
-            <span className="text-[10px] tracking-widest text-slate-400 font-semibold uppercase mt-0.5">
+            <span className="text-[10px] tracking-widest text-gantt-text-secondary font-semibold uppercase mt-0.5">
               Executive Timeline Engine
             </span>
           )}

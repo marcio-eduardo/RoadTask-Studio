@@ -36,7 +36,7 @@ const ENTITY_OPTIONS: EntityMeta[] = [
     desc: 'Item de trabalho com esforço estimado em dias',
     icon: CheckSquare,
     colorClass: 'text-esmeralda-400',
-    borderClass: 'border-esmeralda-500/40',
+    borderClass: 'border-esmeralda-500/20',
     bgClass: 'bg-esmeralda-500/10',
   },
   {
@@ -46,7 +46,7 @@ const ENTITY_OPTIONS: EntityMeta[] = [
     desc: 'Ciclo iterativo padrão (1 a 2 semanas)',
     icon: Zap,
     colorClass: 'text-safira-400',
-    borderClass: 'border-safira-500/40',
+    borderClass: 'border-safira-500/20',
     bgClass: 'bg-safira-500/10',
   },
   {
@@ -56,7 +56,7 @@ const ENTITY_OPTIONS: EntityMeta[] = [
     desc: 'Grande agrupador executivo do projeto',
     icon: Layers,
     colorClass: 'text-indigo-400',
-    borderClass: 'border-indigo-500/40',
+    borderClass: 'border-indigo-500/20',
     bgClass: 'bg-indigo-500/10',
   },
   {
@@ -66,66 +66,62 @@ const ENTITY_OPTIONS: EntityMeta[] = [
     desc: 'Ponto focal de entrega com duração zero (0d)',
     icon: Diamond,
     colorClass: 'text-ouro-400',
-    borderClass: 'border-ouro-500/40',
+    borderClass: 'border-ouro-500/20',
     bgClass: 'bg-ouro-500/10',
   },
 ];
 
 export const TapAndBuildToolbar: React.FC = () => {
-  const { addTask, project } = useGantt();
+  const { project, addTask } = useGantt();
   const { hideTopic } = useGuidedAccess();
 
+  // Selected Entity State
   const [entityType, setEntityType] = useState<EntityType>('story');
-  const [taskName, setTaskName] = useState<string>('');
-  const [duration, setDuration] = useState<number>(5);
-  const [timeUnit, setTimeUnit] = useState<TimeUnit>('days');
-  const [autoChain, setAutoChain] = useState<boolean>(true);
-  const [selectedPhaseId, setSelectedPhaseId] = useState<string>('');
-
-  // Dropdown states
   const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false);
-  const [isDurationMenuOpen, setIsDurationMenuOpen] = useState(false);
-
   const typeMenuRef = useRef<HTMLDivElement>(null);
-  const durationMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns on click outside
+  // Form Fields
+  const [taskName, setTaskName] = useState('');
+  const [duration, setDuration] = useState(5);
+  const [timeUnit, setTimeUnit] = useState<TimeUnit>('days');
+  const [autoChain, setAutoChain] = useState(true);
+  const [selectedPhaseId, setSelectedPhaseId] = useState<string>('');
+  const [isPresetOpen, setIsPresetOpen] = useState(false);
+  const presetRef = useRef<HTMLDivElement>(null);
+
+  // Close menus on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (typeMenuRef.current && !typeMenuRef.current.contains(target)) {
+      if (typeMenuRef.current && !typeMenuRef.current.contains(e.target as Node)) {
         setIsTypeMenuOpen(false);
       }
-      if (durationMenuRef.current && !durationMenuRef.current.contains(target)) {
-        setIsDurationMenuOpen(false);
+      if (presetRef.current && !presetRef.current.contains(e.target as Node)) {
+        setIsPresetOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Available phases in the project for grouping
+  // Available phases
   const availablePhases = useMemo(() => {
     return project.tasks.filter(t => t.type === 'phase');
   }, [project.tasks]);
 
-  // Compute smart suggested names
+  // Smart Auto-Naming Suggestion
   const suggestedName = useMemo(() => {
-    const existing = project.tasks;
-    if (entityType === 'sprint') {
-      const sprintCount = existing.filter(t => t.type === 'sprint').length;
-      return `Sprint ${sprintCount + 1}`;
+    const count = project.tasks.filter(t => t.type === entityType).length + 1;
+    switch (entityType) {
+      case 'phase':
+        return `Fase ${count}: `;
+      case 'sprint':
+        return `Sprint ${count}: `;
+      case 'milestone':
+        return `Marco ${count}: Go-Live Homologado`;
+      case 'story':
+      default:
+        return `Story ${count}: `;
     }
-    if (entityType === 'phase') {
-      const phaseCount = existing.filter(t => t.type === 'phase').length;
-      return `Fase ${phaseCount + 1}: Nova Etapa`;
-    }
-    if (entityType === 'milestone') {
-      const milestoneNames = ['Virada de Chave / Go-Live', 'Homologação Executiva', 'Aceite do Cliente', 'Release v1.0'];
-      const mCount = existing.filter(t => t.type === 'milestone' || t.isMilestone).length;
-      return milestoneNames[mCount % milestoneNames.length];
-    }
-    return `Story ${existing.filter(t => t.type === 'story').length + 1}`;
   }, [entityType, project.tasks]);
 
   // Selected Entity metadata
@@ -203,7 +199,7 @@ export const TapAndBuildToolbar: React.FC = () => {
   const IconComponent = currentEntityMeta.icon;
 
   return (
-    <div className="bg-obsidian-900 border-b border-obsidian-800 px-3 py-2 sm:px-5 sm:py-2.5 shadow-md">
+    <div className="bg-gantt-header border-b border-gantt-border px-3 py-2 sm:px-5 sm:py-2.5 shadow-md transition-colors duration-200">
       <div className="max-w-[1700px] mx-auto">
         <form
           onSubmit={handleCreate}
@@ -218,26 +214,25 @@ export const TapAndBuildToolbar: React.FC = () => {
                   setIsTypeMenuOpen(v => !v);
                   hideTopic();
                 }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer min-h-[38px] ${currentEntityMeta.bgClass} ${currentEntityMeta.borderClass} ${currentEntityMeta.colorClass} hover:brightness-110`}
-                title="Escolha o tipo de elemento a adicionar"
-                aria-expanded={isTypeMenuOpen}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border border-gantt-border bg-gantt-card hover:bg-gantt-card-hover text-xs font-bold transition-all cursor-pointer min-h-[38px] ${currentEntityMeta.colorClass}`}
+                title="Escolher tipo de entidade (Story, Sprint, Fase, Marco)"
               >
-                <IconComponent className="w-3.5 h-3.5 shrink-0" />
+                <IconComponent className="w-4 h-4 shrink-0" />
                 <span>{currentEntityMeta.shortLabel}</span>
                 <ChevronDown
-                  className={`w-3 h-3 transition-transform duration-200 ${
-                    isTypeMenuOpen ? 'rotate-180 opacity-100' : 'opacity-60'
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    isTypeMenuOpen ? 'rotate-180' : ''
                   }`}
                 />
               </button>
             </GuidedTarget>
 
-            {/* 100% Solid Opaque Popover */}
+            {/* Entity Popover */}
             {isTypeMenuOpen && (
-              <div className="absolute left-0 mt-2 w-64 bg-[#0B1120] border border-obsidian-700 rounded-2xl p-1.5 shadow-2xl shadow-black ring-1 ring-white/10 z-50 animate-in fade-in zoom-in-95">
-                <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-obsidian-800">
-                  Tipo de Elemento
-                </div>
+              <div className="absolute left-0 mt-2 w-64 bg-gantt-card border border-gantt-border rounded-2xl p-2 shadow-2xl shadow-black/40 z-50 animate-in fade-in zoom-in-95">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2.5 py-1 block">
+                  Selecione o Tipo
+                </span>
                 <div className="space-y-1 mt-1">
                   {ENTITY_OPTIONS.map(opt => {
                     const ItemIcon = opt.icon;
@@ -249,13 +244,13 @@ export const TapAndBuildToolbar: React.FC = () => {
                         onClick={() => handleTypeSelect(opt.type)}
                         className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer ${
                           isSelected
-                            ? 'bg-obsidian-800 text-white'
-                            : 'hover:bg-obsidian-850 text-slate-300'
+                            ? 'bg-gantt-canvas text-gantt-primary'
+                            : 'hover:bg-gantt-canvas/60 text-gantt-muted hover:text-gantt-primary'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${opt.bgClass} border ${opt.borderClass} ${opt.colorClass}`}
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${opt.bgClass} border border-gantt-border ${opt.colorClass}`}
                           >
                             <ItemIcon className="w-3.5 h-3.5" />
                           </div>
@@ -286,13 +281,13 @@ export const TapAndBuildToolbar: React.FC = () => {
               value={taskName}
               onChange={e => setTaskName(e.target.value)}
               placeholder={`Nome da ${currentEntityMeta.shortLabel} (ex: "${suggestedName}")`}
-              className="w-full bg-obsidian-950/80 border border-obsidian-750 hover:border-obsidian-600 focus:border-safira-500 text-white placeholder-slate-500 rounded-xl px-3.5 py-2 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-safira-500/30 transition-all min-h-[38px]"
+              className="w-full bg-gantt-canvas border border-gantt-border hover:border-gantt-border-strong focus:border-safira-500/60 text-gantt-primary placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl px-3.5 py-2 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-safira-500/20 transition-all min-h-[38px]"
             />
             {!taskName && (
               <button
                 type="button"
                 onClick={() => setTaskName(suggestedName)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] font-semibold bg-obsidian-800 hover:bg-obsidian-750 text-slate-300 hover:text-white px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer border border-obsidian-700"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10.5px] font-semibold bg-gantt-card hover:bg-gantt-card-hover text-slate-600 dark:text-slate-300 hover:text-gantt-primary dark:hover:text-white px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer border border-gantt-border"
                 title="Preencher com sugestão automática"
               >
                 <Sparkles className="w-3 h-3 text-ouro-400" />
@@ -307,7 +302,7 @@ export const TapAndBuildToolbar: React.FC = () => {
               <select
                 value={selectedPhaseId}
                 onChange={e => setSelectedPhaseId(e.target.value)}
-                className="w-full bg-obsidian-950/80 border border-obsidian-750 text-slate-200 rounded-xl px-2.5 py-2 text-xs appearance-none focus:outline-none focus:border-safira-500 pr-7 cursor-pointer truncate min-h-[38px]"
+                className="w-full bg-gantt-canvas border border-gantt-border text-gantt-primary rounded-xl px-2.5 py-2 text-xs appearance-none focus:outline-none focus:border-safira-500/60 pr-7 cursor-pointer truncate min-h-[38px]"
                 title="Agrupar dentro de uma Fase"
               >
                 <option value="">Sem Fase (Raiz)</option>
@@ -321,134 +316,117 @@ export const TapAndBuildToolbar: React.FC = () => {
             </div>
           )}
 
-          {/* 4. Unified Duration Control Pill (Stepper + Presets Popover) */}
-          {entityType !== 'milestone' ? (
-            <div className="relative shrink-0" ref={durationMenuRef}>
+          {/* 4. Duration Controls (Stepper + Quick Presets Dropdown) */}
+          {entityType !== 'milestone' && (
+            <div className="flex items-center gap-1.5 shrink-0" ref={presetRef}>
               <GuidedTarget topicId="tap_build_duration">
-                <div className="flex items-center bg-obsidian-950/90 border border-obsidian-750 rounded-xl p-0.5 gap-0.5 min-h-[38px]">
+                <div className="flex items-center bg-gantt-canvas border border-gantt-border rounded-xl p-0.5 min-h-[38px]">
+                  {/* Minus button */}
                   <button
                     type="button"
                     onClick={() => handleStepper(-1)}
-                    className="w-7 h-7 rounded-lg hover:bg-obsidian-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+                    disabled={duration <= 1}
+                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-gantt-primary dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed rounded-lg hover:bg-gantt-card-hover transition-colors cursor-pointer"
                     title="Diminuir duração"
                   >
-                    <Minus className="w-3 h-3" />
+                    <Minus className="w-3.5 h-3.5" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsDurationMenuOpen(v => !v);
-                      hideTopic();
-                    }}
-                    className="px-2 py-1 hover:bg-obsidian-800 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
-                    title="Duração e atalhos rápidos"
-                  >
-                    <span className="font-bold text-xs sm:text-sm text-white tabular-nums">
-                      {duration}
-                      {timeUnit === 'days' ? 'd' : timeUnit === 'weeks' ? 'sem' : 'mês'}
-                    </span>
-                    <ChevronDown className="w-2.5 h-2.5 text-slate-400" />
-                  </button>
+                  {/* Input value and unit toggle */}
+                  <div className="flex items-center px-1">
+                    <input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={duration}
+                      onChange={e => setDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-10 bg-transparent text-center text-xs sm:text-sm font-bold text-gantt-primary focus:outline-none tabular-nums"
+                      title="Duração numérica"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const units: TimeUnit[] = ['days', 'weeks', 'months'];
+                        const nextIdx = (units.indexOf(timeUnit) + 1) % units.length;
+                        setTimeUnit(units[nextIdx]);
+                      }}
+                      className="text-[11px] font-semibold text-safira-600 dark:text-safira-400 hover:text-safira-500 px-1 py-0.5 rounded cursor-pointer uppercase transition-colors"
+                      title="Alternar unidade (Dias / Semanas / Meses)"
+                    >
+                      {timeUnit === 'days' ? 'd' : timeUnit === 'weeks' ? 'sem' : 'm'}
+                    </button>
+                  </div>
 
+                  {/* Plus button */}
                   <button
                     type="button"
                     onClick={() => handleStepper(1)}
-                    className="w-7 h-7 rounded-lg hover:bg-obsidian-800 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer transition-colors"
+                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-gantt-primary dark:hover:text-white rounded-lg hover:bg-gantt-card-hover transition-colors cursor-pointer"
                     title="Aumentar duração"
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Quick Preset Dropdown Trigger */}
+                  <button
+                    type="button"
+                    onClick={() => setIsPresetOpen(v => !v)}
+                    className="px-1.5 py-1 text-slate-500 dark:text-slate-400 hover:text-gantt-primary dark:hover:text-white border-l border-gantt-border text-[11px] flex items-center gap-0.5 cursor-pointer rounded-r-lg hover:bg-gantt-card-hover transition-colors"
+                    title="Predefinições rápidas (1d, 3d, 1 sem, 2 sem, 1 mês)"
+                  >
+                    <Clock className="w-3 h-3 text-ouro-400" />
+                    <ChevronDown className="w-2.5 h-2.5" />
                   </button>
                 </div>
               </GuidedTarget>
 
-              {/* 100% Solid Opaque Duration Presets Dropdown */}
-              {isDurationMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-[#0B1120] border border-obsidian-700 rounded-2xl p-2 shadow-2xl shadow-black ring-1 ring-white/10 z-50 animate-in fade-in zoom-in-95">
-                    <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 border-b border-obsidian-800">
-                      <Clock className="w-3 h-3 text-safira-400" />
-                      <span>Durações Frequentes</span>
-                    </div>
-
-                    <div className="space-y-1 mt-1.5">
-                      {durationPresets.map(preset => (
-                        <button
-                          key={preset.label}
-                          type="button"
-                          onClick={() => {
-                            setDuration(preset.days);
-                            setTimeUnit(preset.unit);
-                            setIsDurationMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                            duration === preset.days && timeUnit === preset.unit
-                              ? 'bg-safira-600/30 text-safira-300 font-bold'
-                              : 'hover:bg-obsidian-800 text-slate-300'
-                          }`}
-                        >
-                          <span>{preset.label}</span>
-                          {duration === preset.days && timeUnit === preset.unit && (
-                            <Check className="w-3.5 h-3.5 text-safira-400" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Unit Switcher */}
-                    <div className="pt-2 mt-1.5 border-t border-obsidian-800">
-                      <div className="text-[10px] font-semibold text-slate-400 px-1 mb-1">
-                        Unidade:
-                      </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        {(['days', 'weeks', 'months'] as TimeUnit[]).map(unit => (
-                          <button
-                            key={unit}
-                            type="button"
-                            onClick={() => {
-                              setTimeUnit(unit);
-                            }}
-                            className={`py-1 rounded text-[11px] font-medium text-center cursor-pointer transition-colors ${
-                              timeUnit === unit
-                                ? 'bg-safira-600 text-white'
-                                : 'bg-obsidian-850 hover:bg-obsidian-800 text-slate-400'
-                            }`}
-                          >
-                            {unit === 'days' ? 'Dias' : unit === 'weeks' ? 'Sem' : 'Mês'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+              {/* Quick Presets Popover */}
+              {isPresetOpen && (
+                <div className="absolute mt-12 bg-gantt-card border border-gantt-border rounded-xl p-1.5 shadow-2xl shadow-black/40 z-50 min-w-[140px] animate-in fade-in zoom-in-95">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-2 py-0.5 block">
+                    Predefinições
+                  </span>
+                  <div className="space-y-0.5 mt-1">
+                    {durationPresets.map(preset => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => {
+                          setDuration(preset.days);
+                          setTimeUnit(preset.unit);
+                          setIsPresetOpen(false);
+                        }}
+                        className="w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-gantt-primary dark:hover:text-white hover:bg-gantt-canvas transition-colors cursor-pointer flex items-center justify-between"
+                      >
+                        <span>{preset.label}</span>
+                        {duration === preset.days && timeUnit === preset.unit && (
+                          <Check className="w-3 h-3 text-safira-400" />
+                        )}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </div>
-          ) : (
-            <div className="px-3 py-2 bg-ouro-500/10 border border-ouro-500/30 rounded-xl text-ouro-400 text-xs font-bold flex items-center gap-1.5 shrink-0 min-h-[38px]">
-              <Diamond className="w-3.5 h-3.5" />
-              <span>0 dias (Marco)</span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* 5. Compact Auto-Chain (FS) Button */}
+          {/* 5. Auto-Chain Toggle */}
           <GuidedTarget topicId="tap_build_chain">
             <button
               type="button"
               onClick={() => setAutoChain(v => !v)}
-              className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer min-h-[38px] shrink-0 ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer min-h-[38px] shrink-0 ${
                 autoChain
-                  ? 'bg-safira-500/15 border-safira-500/40 text-safira-300 shadow-sm'
-                  : 'bg-obsidian-950/80 border-obsidian-750 text-slate-500 hover:text-slate-300'
+                  ? 'bg-safira-500/10 border-safira-500/20 text-safira-600 dark:text-safira-400'
+                  : 'bg-gantt-canvas border border-gantt-border text-slate-500 dark:text-slate-400 hover:text-gantt-primary dark:hover:text-white'
               }`}
-              title={
-                autoChain
-                  ? 'Encadeamento ativo: inicia após a tarefa anterior (FS)'
-                  : 'Encadeamento desativado'
-              }
+              title="Encadear término-início (FS) automaticamente com a tarefa anterior"
             >
               <Link className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Encadear</span>
+              <span className="hidden sm:inline">Encadear</span>
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  autoChain ? 'bg-safira-400 animate-pulse' : 'bg-slate-600'
+                  autoChain ? 'bg-safira-400 animate-pulse' : 'bg-slate-400 dark:bg-slate-500'
                 }`}
               />
             </button>
@@ -457,7 +435,7 @@ export const TapAndBuildToolbar: React.FC = () => {
           {/* 6. Primary Action Button */}
           <button
             type="submit"
-            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-safira-600 to-safira-500 hover:from-safira-500 hover:to-safira-400 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-glow-safira transition-all cursor-pointer min-h-[38px] shrink-0 ml-auto sm:ml-0"
+            className="flex items-center justify-center gap-1.5 bg-safira-600 hover:bg-safira-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-xs transition-all cursor-pointer min-h-[38px] shrink-0 ml-auto sm:ml-0"
           >
             <Plus className="w-4 h-4" />
             <span>Inserir</span>

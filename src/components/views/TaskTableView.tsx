@@ -17,12 +17,12 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
   const { project, selectedTaskId, setSelectedTaskId, deleteTask, updateTaskProgress } = useGantt();
 
   return (
-    <div className="flex-1 overflow-auto bg-obsidian-950 p-3 sm:p-5">
-      <div className="max-w-7xl mx-auto bg-obsidian-900 border border-obsidian-800 rounded-2xl overflow-hidden shadow-xl">
+    <div className="flex-1 overflow-auto bg-gantt-canvas p-3 sm:p-5 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto bg-gantt-card border border-gantt-border rounded-2xl overflow-hidden shadow-xs transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-obsidian-850 border-b border-obsidian-800 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+              <tr className="bg-gantt-header border-b border-gantt-border text-gantt-text-secondary font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-3.5 px-4">#</th>
                 <th className="py-3.5 px-4 min-w-[220px]">Estrutura WBS / Nome</th>
                 <th className="py-3.5 px-3">Tipo</th>
@@ -34,7 +34,7 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
                 <th className="py-3.5 px-3 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-obsidian-800/80 text-slate-300">
+            <tbody className="divide-y divide-gantt-border text-gantt-text-primary">
               {project.tasks.map((task, idx) => {
                 const isSelected = selectedTaskId === task.id;
                 const isMilestone = task.isMilestone || task.type === 'milestone';
@@ -44,12 +44,12 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
                   <tr
                     key={task.id}
                     onClick={() => setSelectedTaskId(task.id)}
-                    className={`hover:bg-obsidian-800/50 transition-colors cursor-pointer ${
-                      isSelected ? 'bg-safira-500/10' : ''
+                    className={`hover:bg-gantt-canvas/60 transition-colors cursor-pointer ${
+                      isSelected ? 'bg-gantt-accent/10' : ''
                     } ${task.isCritical ? 'bg-carmim-500/5' : ''}`}
                   >
                     {/* Index */}
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                    <td className="py-3 px-4 font-mono text-[11px] text-gantt-text-muted">
                       {idx + 1}
                     </td>
 
@@ -57,18 +57,18 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
                     <td className="py-3 px-4">
                       <div className={`flex items-center gap-2 ${isChild ? 'pl-5' : ''}`}>
                         {isMilestone ? (
-                          <Diamond className="w-3.5 h-3.5 text-ouro-400 shrink-0" />
+                          <Diamond className="w-3.5 h-3.5 text-ouro-500 shrink-0" />
                         ) : task.isCritical ? (
-                          <Flame className="w-3.5 h-3.5 text-carmim-400 shrink-0" />
+                          <Flame className="w-3.5 h-3.5 text-carmim-500 shrink-0" />
                         ) : (
                           <div
                             className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: task.color || '#0284C7' }}
+                            style={{ backgroundColor: task.color || 'var(--gantt-brand-accent)' }}
                           />
                         )}
                         <span
-                          className={`font-semibold text-slate-100 ${
-                            task.type === 'phase' ? 'text-sm font-bold text-safira-300' : ''
+                          className={`font-semibold text-gantt-text-primary ${
+                            task.type === 'phase' ? 'text-sm font-bold text-gantt-accent' : ''
                           }`}
                         >
                           {task.name}
@@ -78,23 +78,23 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
 
                     {/* Entity Type */}
                     <td className="py-3 px-3">
-                      <span className="text-[10px] uppercase font-bold bg-obsidian-800 px-2 py-0.5 rounded border border-obsidian-750 text-slate-400">
+                      <span className="text-[10px] uppercase font-bold bg-gantt-canvas px-2 py-0.5 rounded border border-gantt-border text-gantt-text-secondary">
                         {task.type}
                       </span>
                     </td>
 
                     {/* Start Date */}
-                    <td className="py-3 px-3 font-mono tabular-nums text-slate-300">
+                    <td className="py-3 px-3 font-mono tabular-nums text-gantt-text-secondary">
                       {formatBrDate(task.startDate)}
                     </td>
 
                     {/* End Date */}
-                    <td className="py-3 px-3 font-mono tabular-nums text-slate-300">
+                    <td className="py-3 px-3 font-mono tabular-nums text-gantt-text-secondary">
                       {formatBrDate(task.endDate)}
                     </td>
 
                     {/* Duration */}
-                    <td className="py-3 px-3 font-semibold tabular-nums text-slate-200">
+                    <td className="py-3 px-3 font-semibold tabular-nums text-gantt-text-primary">
                       {isMilestone ? '0d' : `${task.duration}d`}
                     </td>
 
@@ -108,16 +108,16 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
                           step="5"
                           value={task.progress}
                           onChange={e => updateTaskProgress(task.id, Number(e.target.value))}
-                          className="w-20 accent-safira-500 bg-obsidian-800 h-1.5 rounded cursor-pointer"
+                          className="w-20 accent-gantt-accent bg-gantt-canvas h-1.5 rounded cursor-pointer"
                         />
-                        <span className="font-bold tabular-nums text-[11px] text-slate-400 w-8">
+                        <span className="font-bold tabular-nums text-[11px] text-gantt-text-secondary w-8">
                           {task.progress}%
                         </span>
                       </div>
                     </td>
 
                     {/* Assignee */}
-                    <td className="py-3 px-3 text-slate-400 truncate max-w-[120px]">
+                    <td className="py-3 px-3 text-gantt-text-secondary truncate max-w-[120px]">
                       {task.assignee || '—'}
                     </td>
 
@@ -130,7 +130,7 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
                             e.stopPropagation();
                             onEditTask(task);
                           }}
-                          className="p-1.5 text-slate-400 hover:text-safira-400 rounded-lg hover:bg-obsidian-750 transition-colors"
+                          className="p-1.5 text-gantt-text-secondary hover:text-gantt-accent rounded-lg hover:bg-gantt-canvas transition-colors"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -143,7 +143,7 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
                               deleteTask(task.id);
                             }
                           }}
-                          className="p-1.5 text-slate-400 hover:text-carmim-400 rounded-lg hover:bg-obsidian-750 transition-colors"
+                          className="p-1.5 text-gantt-text-secondary hover:text-carmim-500 rounded-lg hover:bg-gantt-canvas transition-colors"
                           title="Excluir"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
