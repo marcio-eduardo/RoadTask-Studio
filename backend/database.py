@@ -4,7 +4,13 @@ from typing import List, Optional
 from datetime import datetime
 from dotenv import load_dotenv
 
-load_dotenv()
+# Carrega variáveis de ambiente priorizando o .env da raiz do projeto (fonte única)
+backend_dir = os.path.dirname(__file__)
+root_env = os.path.abspath(os.path.join(backend_dir, "..", ".env"))
+if os.path.exists(root_env):
+    load_dotenv(root_env)
+else:
+    load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = (

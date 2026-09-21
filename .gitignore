@@ -13,9 +13,10 @@ pids
 *.seed
 *.pid.lock
 
-# Diretórios de dependências
+# Diretórios de dependências e documentação interna
 node_modules/
 jspm_packages/
+docs/
 
 # Arquivos compilados e saídas de build
 dist/
@@ -52,7 +53,7 @@ env/
 *.sw?
 
 # Inteligência Artificial & Assistentes de Código (Antigravity, Gemini, Cursor, Copilot, Windsurf, Claude, Aider)
-.agents/
+/.agents/
 .gemini/
 .system_generated/
 walkthrough/
