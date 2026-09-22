@@ -1,6 +1,27 @@
 import { Project } from '../types/gantt';
 import { getDefaultHolidays } from './holidaysBR';
 
+export function createBlankProject(): Project {
+  const today = new Date().toISOString().split('T')[0];
+  return {
+    id: `proj_${Date.now()}`,
+    name: 'Novo Projeto',
+    clientName: 'Cliente Corporativo',
+    description: 'Roadmap criado no RoadTask Studio.',
+    targetDate: '',
+    timeUnit: 'days',
+    calendar: {
+      includeWeekends: false,
+      saturdayIsWorkday: false,
+      holidays: getDefaultHolidays(),
+      workHoursPerDay: 8,
+    },
+    createdAt: today,
+    updatedAt: today,
+    tasks: [],
+  };
+}
+
 export const BLUEPRINTS: { id: string; name: string; description: string; icon: string; project: Project }[] = [
   {
     id: 'software-agile',
@@ -167,46 +188,6 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
     name: 'Projeto em Branco (Novo)',
     description: 'Comece do zero e construa seu roadmap tocando nos blocos visuais.',
     icon: 'PlusCircle',
-    project: {
-      id: 'proj_novo',
-      name: 'Novo Cronograma de Engenharia',
-      clientName: 'Cliente Corporativo',
-      description: 'Construa seu roadmap tocando nos blocos de Fase, Sprint, Story e Marco.',
-      targetDate: '2026-12-31',
-      timeUnit: 'days',
-      calendar: {
-        includeWeekends: false,
-        saturdayIsWorkday: false,
-        holidays: getDefaultHolidays(),
-        workHoursPerDay: 8,
-      },
-      createdAt: '2026-09-18',
-      updatedAt: '2026-09-18',
-      tasks: [
-        {
-          id: 'new_1',
-          name: 'Fase 1: Alinhamento Inicial',
-          type: 'phase',
-          startDate: '2026-09-21',
-          duration: 5,
-          endDate: '2026-09-25',
-          progress: 0,
-          dependencies: [],
-          color: '#0284C7',
-        },
-        {
-          id: 'new_2',
-          name: 'Marco: Início dos Trabalhos',
-          type: 'milestone',
-          isMilestone: true,
-          startDate: '2026-09-21',
-          duration: 0,
-          endDate: '2026-09-21',
-          progress: 0,
-          dependencies: [],
-          color: '#FBBF24',
-        },
-      ],
-    },
+    project: createBlankProject(),
   },
 ];

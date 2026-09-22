@@ -12,6 +12,7 @@ import {
 import {
   Diamond,
   Flame,
+  Sparkles,
 } from 'lucide-react';
 
 interface GanttTimelineViewProps {
@@ -145,10 +146,14 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
   const { timelineDates, minDateStr } = useMemo(() => {
     const tasks = displayTasks.length > 0 ? displayTasks : project.tasks;
     if (tasks.length === 0) {
-      const today = formatDateUtc(new Date());
+      const today = new Date();
+      const minDateObj = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+      const maxDateObj = new Date(today.getTime() + 27 * 24 * 60 * 60 * 1000);
+      const minStr = formatDateUtc(minDateObj);
+      const maxStr = formatDateUtc(maxDateObj);
       return {
-        timelineDates: getDateRange(today, today),
-        minDateStr: today,
+        timelineDates: getDateRange(minStr, maxStr),
+        minDateStr: minStr,
       };
     }
 
@@ -304,7 +309,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
   }, [dragState, colWidth, moveTaskDate, resizeTaskDuration, updateTaskProgress, project.tasks]);
 
   const totalWidth = timelineDates.length * colWidth;
-  const totalHeight = headerHeight + displayTasks.length * rowHeight + 40;
+  const totalHeight = Math.max(450, headerHeight + displayTasks.length * rowHeight + 40);
 
   return (
     <div className="flex-1 flex flex-col bg-gantt-canvas overflow-hidden relative select-none transition-colors duration-200">
@@ -887,6 +892,21 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                   </div>
                 );
               })}
+              {displayTasks.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
+                  <div className="bg-gantt-card/90 backdrop-blur-md border border-gantt-border rounded-2xl p-6 text-center max-w-md shadow-xl pointer-events-auto">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-safira-500/15 border border-safira-500/30 flex items-center justify-center text-safira-500">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-base font-bold text-gantt-primary mb-1">
+                      Projeto em Branco
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Seu cronograma está limpo e pronto. Toque em <strong>Inserir</strong> na barra superior para adicionar a primeira Fase, Sprint ou Tarefa, ou clique em <strong>Modelos</strong> no menu para carregar um exemplo.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

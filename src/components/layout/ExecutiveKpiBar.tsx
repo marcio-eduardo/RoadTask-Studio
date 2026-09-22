@@ -22,7 +22,7 @@ export const ExecutiveKpiBar: React.FC = () => {
               </span>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-sm sm:text-base font-extrabold text-gantt-primary tracking-tight tabular-nums">
-                  {formatBrDate(kpis.projectEndDate)}
+                  {kpis.projectEndDate ? formatBrDate(kpis.projectEndDate) : '—'}
                 </span>
                 {kpis.varianceDays !== 0 && (
                   <span

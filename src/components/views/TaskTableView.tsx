@@ -35,6 +35,18 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gantt-border text-gantt-text-primary">
+              {project.tasks.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-12 px-4 text-center text-slate-500 dark:text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-1.5">
+                      <span className="text-xs font-bold text-gantt-primary">Projeto em Branco</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Nenhuma atividade cadastrada. Use o construtor acima para adicionar tarefas ou carregue um modelo no menu Projeto.
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              )}
               {project.tasks.map((task, idx) => {
                 const isSelected = selectedTaskId === task.id;
                 const isMilestone = task.isMilestone || task.type === 'milestone';

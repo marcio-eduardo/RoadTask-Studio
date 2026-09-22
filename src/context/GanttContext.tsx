@@ -8,11 +8,10 @@ import {
   SimulationState,
   DependencyType,
 } from '../types/gantt';
-import { BLUEPRINTS } from '../data/blueprints';
+import { BLUEPRINTS, createBlankProject } from '../data/blueprints';
 import { recalculateProjectCascade, wouldCreateCycle } from '../engine/dependencies';
 import { calculateCriticalPath } from '../engine/criticalPath';
 import { countWorkDaysBetween, ensureWorkDay, calculateEndDate } from '../engine/calendar';
-import { getDefaultHolidays } from '../data/holidaysBR';
 import { saveToWindowsFile, openFromWindowsFile } from '../services/windowsFileSystem';
 
 const STORAGE_KEY = 'vanguard_gantt_projects_v2';
@@ -75,37 +74,42 @@ interface GanttContextType {
 const GanttContext = createContext<GanttContextType | undefined>(undefined);
 
 export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial project from storage or default to SGFrotas blueprint
+  // Load initial project from storage or default to a Blank Project
   const [savedProjects, setSavedProjects] = useState<Project[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const hasIntegrado = parsed.some((p: Project) => p.id === 'proj_sgfrotas_integrado');
-          if (!hasIntegrado) {
-            return [BLUEPRINTS[0].project, ...parsed.filter((p: Project) => p.id !== 'proj_sgfrotas_sp')];
-          }
           return parsed;
         }
       }
     } catch {
       // Fallback
     }
-    return BLUEPRINTS.map(b => b.project);
+    return [createBlankProject(), ...BLUEPRINTS.map(b => b.project)];
   });
 
   const [project, setProject] = useState<Project>(() => {
     try {
+      // Check if URL explicitly requests a blank project via ?blank, ?new, or ?novo
+      if (typeof window !== 'undefined' && window.location) {
+        const search = window.location.search.toLowerCase();
+        if (search.includes('blank') || search.includes('new') || search.includes('novo')) {
+          return createBlankProject();
+        }
+      }
+
       const activeId = localStorage.getItem(ACTIVE_PROJ_KEY);
-      if (activeId && activeId !== 'proj_sgfrotas_sp') {
+      if (activeId) {
         const found = savedProjects.find(p => p.id === activeId);
         if (found) return found;
       }
     } catch {
       // Fallback
     }
-    return BLUEPRINTS[0].project;
+    // When someone accesses the link for the first time, ALWAYS open with a Blank Project
+    return createBlankProject();
   });
 
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -305,36 +309,7 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const createNewProject = useCallback(() => {
     pushHistory(project);
-    const today = new Date().toISOString().split('T')[0];
-    const blank: Project = {
-      id: `proj_${Date.now()}`,
-      name: 'Novo Cronograma',
-      clientName: '',
-      description: '',
-      targetDate: '',
-      timeUnit: 'days',
-      calendar: {
-        includeWeekends: false,
-        saturdayIsWorkday: false,
-        holidays: getDefaultHolidays(),
-        workHoursPerDay: 8,
-      },
-      createdAt: today,
-      updatedAt: today,
-      tasks: [
-        {
-          id: 'phase_1',
-          name: 'Fase 1',
-          type: 'phase',
-          startDate: today,
-          duration: 5,
-          endDate: today,
-          progress: 0,
-          dependencies: [],
-          color: '#0284C7',
-        },
-      ],
-    };
+    const blank = createBlankProject();
     setProject(recomputeProject(blank));
     setActiveFileHandle(null);
     setLinkedFileName(null);

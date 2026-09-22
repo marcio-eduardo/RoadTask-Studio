@@ -11,6 +11,7 @@ import {
   Edit3,
   Link,
   Flame,
+  Sparkles,
 } from 'lucide-react';
 
 interface TaskDeckViewProps {
@@ -30,6 +31,19 @@ export const TaskDeckView: React.FC<TaskDeckViewProps> = ({ onEditTask }) => {
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-5 bg-gantt-canvas pb-24 md:pb-8 transition-colors duration-200">
       <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
+        {project.tasks.length === 0 && (
+          <div className="text-center py-16 px-4 bg-gantt-card border border-gantt-border rounded-2xl shadow-xs">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-safira-500/15 border border-safira-500/30 flex items-center justify-center text-safira-500">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-gantt-primary mb-1">
+              Projeto em Branco
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+              Nenhuma atividade cadastrada. Use o construtor acima para adicionar a primeira Fase, Sprint ou Tarefa.
+            </p>
+          </div>
+        )}
         {project.tasks.map(task => {
           const isSelected = selectedTaskId === task.id;
           const isMilestone = task.isMilestone || task.type === 'milestone';
