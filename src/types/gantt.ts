@@ -63,6 +63,7 @@ export interface Task {
   type: EntityType;
   phaseId?: string; // Grouping parent (Phase/Epic) - legacy support
   epicId?: string; // Grouping parent (Epic)
+  sprintId?: string; // Grouping sprint for Scrum timeboxing
   startDate: string; // ISO string 'YYYY-MM-DD'
   duration: number; // Duration in work days (or hours if timeUnit === 'hours')
   endDate: string; // Computed end date

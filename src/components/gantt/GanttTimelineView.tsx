@@ -63,13 +63,21 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
     }
   }, [zoomLevel]);
 
+  // Sprints defined in the project sorted by start date
+  const sprints = useMemo(() => {
+    return project.tasks
+      .filter(t => t.type === 'sprint')
+      .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  }, [project.tasks]);
+
   const rowHeight = 52; // 52px per task row for great touch ergonomics
   const monthHeaderHeight = 24;
+  const sprintHeaderHeight = sprints.length > 0 ? 42 : 0;
   const dayHeaderHeight = 36;
-  const headerHeight = monthHeaderHeight + dayHeaderHeight; // 60px
+  const headerHeight = monthHeaderHeight + sprintHeaderHeight + dayHeaderHeight;
   const phaseColWidth = 140; // Width of sticky left phase swimlane column
 
-  // Group tasks by epic/phase and build displayTasks (excluding summary epic bars from timeline rows)
+  // Group tasks by epic/phase and build displayTasks (excluding summary epic bars and sprints from timeline rows)
   const { phaseSections, displayTasks, hasPhases } = useMemo(() => {
     const phases = project.tasks.filter(isEpic);
     const sections: PhaseSection[] = [];
@@ -78,7 +86,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
 
     if (phases.length > 0) {
       for (const ph of phases) {
-        const children = project.tasks.filter(t => (t.phaseId === ph.id || t.epicId === ph.id) && !isEpic(t));
+        const children = project.tasks.filter(
+          t => (t.phaseId === ph.id || t.epicId === ph.id) && !isEpic(t) && t.type !== 'sprint'
+        );
         if (children.length > 0) {
           const rawName = ph.name;
           const parts = rawName.split(':');
@@ -103,9 +113,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
         }
       }
 
-      // Tasks without an epic (or milestones not assigned to an epic)
+      // Tasks without an epic (or milestones not assigned to an epic), excluding sprints
       const unassigned = project.tasks.filter(
-        t => !isEpic(t) && (!getTaskEpicId(t) || !phases.some(p => p.id === getTaskEpicId(t)))
+        t => !isEpic(t) && t.type !== 'sprint' && (!getTaskEpicId(t) || !phases.some(p => p.id === getTaskEpicId(t)))
       );
       if (unassigned.length > 0) {
         sections.push({
@@ -125,9 +135,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
         currentIndex += unassigned.length;
       }
     } else {
-      // No phases defined: flat list of all non-phase tasks
-      const nonPhases = project.tasks.filter(t => t.type !== 'phase');
-      const allTasks = nonPhases.length > 0 ? nonPhases : project.tasks;
+      // No phases defined: flat list of all non-phase and non-sprint tasks
+      const nonPhases = project.tasks.filter(t => t.type !== 'phase' && t.type !== 'sprint');
+      const allTasks = nonPhases.length > 0 ? nonPhases : project.tasks.filter(t => t.type !== 'sprint');
       sections.push({
         id: 'sec_all',
         name: 'Cronograma',
@@ -143,11 +153,11 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
     }
 
     return { phaseSections: sections, displayTasks: flatDisplay, hasPhases: phases.length > 0 };
-  }, [project.tasks]);
+  }, [project.tasks, headerHeight]);
 
-  // Determine timeline date boundaries
+  // Determine timeline date boundaries using all project tasks (including sprints)
   const { timelineDates, minDateStr } = useMemo(() => {
-    const tasks = displayTasks.length > 0 ? displayTasks : project.tasks;
+    const tasks = project.tasks.length > 0 ? project.tasks : displayTasks;
     if (tasks.length === 0) {
       const today = new Date();
       const minDateObj = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
@@ -334,17 +344,37 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
               style={{ width: phaseColWidth }}
               className="sticky left-0 z-30 shrink-0 bg-gantt-card/95 backdrop-blur-md border-r border-gantt-border flex flex-col shadow-lg transition-colors"
             >
-              {/* Sticky Top Header Cell for Phases */}
+              {/* Sticky Top Header Cell for Phases (3-tier aligned) */}
               <div
                 style={{ height: headerHeight }}
-                className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex flex-col items-center justify-center px-3 transition-colors select-none"
+                className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex flex-col justify-between p-2.5 transition-colors select-none"
               >
-                <span className="text-xs font-black uppercase tracking-wider text-gantt-text-secondary">
-                  Épico
-                </span>
-                <span className="text-[9.5px] text-gantt-text-muted font-semibold tracking-tight">
-                  Swimlanes
-                </span>
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-gantt-text-secondary">
+                    Cronograma
+                  </span>
+                  <span className="text-[9px] text-gantt-text-muted font-semibold">
+                    Ágil
+                  </span>
+                </div>
+
+                {sprints.length > 0 && (
+                  <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded bg-purple-950/40 border border-purple-500/30 text-purple-300">
+                    <Zap className="w-3 h-3 text-purple-400 shrink-0" />
+                    <span className="text-[9.5px] font-black uppercase tracking-wider truncate">
+                      {sprints.length} {sprints.length === 1 ? 'Sprint' : 'Sprints'}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-[10.5px] font-black uppercase tracking-wider text-gantt-text-primary">
+                    Épicos
+                  </span>
+                  <span className="text-[9px] text-gantt-text-muted font-semibold">
+                    Swimlanes
+                  </span>
+                </div>
               </div>
 
               {/* Section Swimlane Cells */}
@@ -624,7 +654,93 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                 })}
               </div>
 
-              {/* Row 2: Days Columns */}
+              {/* Row 2: Sprint Track (Visual Sprint Timeline directly over the Days) */}
+              {sprints.length > 0 && (
+                <div
+                  className="relative border-b border-gantt-border/70 bg-purple-950/15 overflow-hidden shrink-0"
+                  style={{ height: sprintHeaderHeight, width: totalWidth }}
+                >
+                  {sprints.map((sprint, sIdx) => {
+                    const startX = getXForDate(sprint.startDate);
+                    const endX = getXForDate(sprint.endDate) + colWidth;
+                    const width = Math.max(colWidth * 2, endX - startX);
+
+                    // Stories belonging to this sprint (by sprintId or by date overlap)
+                    const sprintStories = project.tasks.filter(
+                      t => !isEpic(t) && t.type !== 'sprint' && (
+                        t.sprintId === sprint.id ||
+                        t.epicId === sprint.id ||
+                        t.phaseId === sprint.id ||
+                        (t.startDate >= sprint.startDate && t.startDate <= sprint.endDate)
+                      )
+                    );
+                    const avgStoryProgress = sprintStories.length > 0
+                      ? Math.round(sprintStories.reduce((acc, st) => acc + (st.progress || 0), 0) / sprintStories.length)
+                      : 0;
+                    const sprintProgress = sprint.progress > 0 ? sprint.progress : avgStoryProgress;
+
+                    // Clean label: "Sprint 0", "Sprint 1", etc.
+                    const sprintNumberMatch = sprint.name.match(/Sprint\s*(\d+)/i);
+                    const sprintLabel = sprintNumberMatch
+                      ? `Sprint ${sprintNumberMatch[1]}`
+                      : `Sprint ${sIdx}`;
+
+                    const sprintSubname = sprint.name.replace(/^Sprint\s*\d+[:\s-]*/i, '').trim();
+
+                    return (
+                      <div
+                        key={sprint.id}
+                        style={{
+                          left: startX,
+                          width: width,
+                        }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedTaskId(sprint.id);
+                          if (onSelectTask) onSelectTask(sprint);
+                        }}
+                        title={`${sprint.name} (${formatBrDate(sprint.startDate)} a ${formatBrDate(sprint.endDate)}) • ${sprintProgress}% concluído • ${sprintStories.length} histórias • Clique para editar datas`}
+                        className="absolute top-1 bottom-1 px-2.5 py-0.5 rounded-lg border border-purple-500/40 bg-purple-950/50 hover:bg-purple-900/60 hover:border-purple-400/80 transition-all cursor-pointer group flex flex-col justify-between shadow-xs select-none backdrop-blur-xs"
+                      >
+                        {/* Title line above progress bar */}
+                        <div className="flex items-center justify-between gap-1 overflow-hidden leading-tight">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse shrink-0" />
+                            <span className="text-[11px] font-black text-purple-200 tracking-wide truncate">
+                              {sprintLabel}
+                            </span>
+                            {sprintSubname && (
+                              <span className="text-[9.5px] font-semibold text-purple-300/80 truncate hidden sm:inline">
+                                : {sprintSubname}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-[9px] font-black text-purple-200 tabular-nums bg-purple-900/70 px-1 py-0.2 rounded border border-purple-500/40">
+                              {sprintProgress}%
+                            </span>
+                            <span className="text-[8.5px] font-semibold text-slate-300 tabular-nums hidden md:inline">
+                              {sprint.duration}d
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar Track */}
+                        <div className="w-full h-2 rounded-full bg-purple-950/90 border border-purple-500/35 overflow-hidden relative shadow-inner">
+                          <div
+                            style={{ width: `${Math.min(100, Math.max(0, sprintProgress))}%` }}
+                            className="h-full bg-gradient-to-r from-purple-500 via-indigo-400 to-safira-400 rounded-full transition-all duration-300 relative"
+                          >
+                            <div className="absolute inset-0 bg-white/20 animate-pulse pointer-events-none" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Row 3: Days Columns */}
               <div className="flex flex-1" style={{ height: dayHeaderHeight }}>
                 {timelineDates.map(dateStr => {
                   const isWorking = isWorkDay(dateStr, project.calendar);
