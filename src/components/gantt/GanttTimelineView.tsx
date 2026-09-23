@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useGantt } from '../../context/GanttContext';
-import { Task } from '../../types/gantt';
+import { Task, isEpic, getTaskEpicId } from '../../types/gantt';
 import {
   parseDateUtc,
   formatDateUtc,
@@ -67,16 +67,16 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
   const headerHeight = monthHeaderHeight + dayHeaderHeight; // 60px
   const phaseColWidth = 140; // Width of sticky left phase swimlane column
 
-  // Group tasks by phase and build displayTasks (excluding summary phase bars from timeline rows)
+  // Group tasks by epic/phase and build displayTasks (excluding summary epic bars from timeline rows)
   const { phaseSections, displayTasks, hasPhases } = useMemo(() => {
-    const phases = project.tasks.filter(t => t.type === 'phase');
+    const phases = project.tasks.filter(isEpic);
     const sections: PhaseSection[] = [];
     const flatDisplay: Task[] = [];
     let currentIndex = 0;
 
     if (phases.length > 0) {
       for (const ph of phases) {
-        const children = project.tasks.filter(t => t.phaseId === ph.id && t.type !== 'phase');
+        const children = project.tasks.filter(t => (t.phaseId === ph.id || t.epicId === ph.id) && !isEpic(t));
         if (children.length > 0) {
           const rawName = ph.name;
           const parts = rawName.split(':');
@@ -101,9 +101,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
         }
       }
 
-      // Tasks without a phase (or milestones not assigned to a phase)
+      // Tasks without an epic (or milestones not assigned to an epic)
       const unassigned = project.tasks.filter(
-        t => t.type !== 'phase' && (!t.phaseId || !phases.some(p => p.id === t.phaseId))
+        t => !isEpic(t) && (!getTaskEpicId(t) || !phases.some(p => p.id === getTaskEpicId(t)))
       );
       if (unassigned.length > 0) {
         sections.push({
@@ -338,7 +338,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                 className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex flex-col items-center justify-center px-3 transition-colors select-none"
               >
                 <span className="text-xs font-black uppercase tracking-wider text-gantt-text-secondary">
-                  Fase
+                  Épico
                 </span>
                 <span className="text-[9.5px] text-gantt-text-muted font-semibold tracking-tight">
                   Swimlanes

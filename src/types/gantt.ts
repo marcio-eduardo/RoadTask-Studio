@@ -1,4 +1,7 @@
-export type EntityType = 'phase' | 'sprint' | 'story' | 'milestone';
+export type EntityType = 'epic' | 'phase' | 'sprint' | 'story' | 'milestone';
+
+export const isEpic = (task: { type?: EntityType }): boolean => task.type === 'epic' || task.type === 'phase';
+export const getTaskEpicId = (task: { epicId?: string; phaseId?: string }): string | undefined => task.epicId || task.phaseId;
 
 export type TimeUnit = 'hours' | 'days' | 'weeks' | 'months';
 
@@ -33,7 +36,8 @@ export interface Task {
   id: string;
   name: string;
   type: EntityType;
-  phaseId?: string; // Grouping parent (Phase/Epic)
+  phaseId?: string; // Grouping parent (Phase/Epic) - legacy support
+  epicId?: string; // Grouping parent (Epic)
   startDate: string; // ISO string 'YYYY-MM-DD'
   duration: number; // Duration in work days (or hours if timeUnit === 'hours')
   endDate: string; // Computed end date
@@ -96,7 +100,7 @@ export interface SimulationState {
   impactedMilestoneName?: string;
 }
 
-export type ViewMode = 'deck' | 'timeline' | 'split' | 'table';
+export type ViewMode = 'deck' | 'timeline' | 'split' | 'table' | 'scrum';
 
 export type ZoomLevel = 'day' | 'week' | 'month' | 'quarter';
 

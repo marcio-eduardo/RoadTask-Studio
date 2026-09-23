@@ -46,16 +46,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <span className="text-[10px]">Gantt</span>
         </button>
 
-        {/* Task Deck (Cards) */}
+        {/* Scrum View */}
         <button
           type="button"
-          onClick={() => setViewMode('deck')}
+          onClick={() => setViewMode('scrum')}
           className={`flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all ${
-            viewMode === 'deck' ? 'text-safira-400 font-bold' : 'text-slate-400'
+            viewMode === 'scrum' ? 'text-safira-400 font-bold' : 'text-slate-400'
           }`}
         >
           <Grid3X3 className="w-5 h-5" />
-          <span className="text-[10px]">Cards</span>
+          <span className="text-[10px]">Scrum</span>
         </button>
 
         {/* Center: Tap to Add */}

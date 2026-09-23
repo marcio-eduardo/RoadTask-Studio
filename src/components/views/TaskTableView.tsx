@@ -51,7 +51,7 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
               {project.tasks.map((task, idx) => {
                 const isSelected = selectedTaskId === task.id;
                 const isMilestone = task.isMilestone || task.type === 'milestone';
-                const isChild = !!task.phaseId;
+                const isChild = !!(task.epicId || task.phaseId);
 
                 return (
                   <tr
@@ -82,7 +82,7 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
                           )}
                           <span
                             className={`font-semibold text-gantt-text-primary ${
-                              task.type === 'phase' ? 'text-sm font-bold text-gantt-accent' : ''
+                              task.type === 'epic' || task.type === 'phase' ? 'text-sm font-bold text-gantt-accent' : ''
                             }`}
                           >
                             {task.name}

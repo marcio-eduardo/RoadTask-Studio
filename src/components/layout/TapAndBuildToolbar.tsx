@@ -50,9 +50,9 @@ const ENTITY_OPTIONS: EntityMeta[] = [
     bgClass: 'bg-safira-500/10',
   },
   {
-    type: 'phase',
-    label: 'Fase / Macroetapa',
-    shortLabel: 'Fase',
+    type: 'epic',
+    label: 'Épico (Epic)',
+    shortLabel: 'Épico',
     desc: 'Grande agrupador executivo do projeto',
     icon: Layers,
     colorClass: 'text-indigo-400',
@@ -103,17 +103,18 @@ export const TapAndBuildToolbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Available phases
-  const availablePhases = useMemo(() => {
-    return project.tasks.filter(t => t.type === 'phase');
+  // Available epics
+  const availableEpics = useMemo(() => {
+    return project.tasks.filter(t => t.type === 'epic' || t.type === 'phase');
   }, [project.tasks]);
 
   // Smart Auto-Naming Suggestion
   const suggestedName = useMemo(() => {
-    const count = project.tasks.filter(t => t.type === entityType).length + 1;
+    const count = project.tasks.filter(t => t.type === entityType || (entityType === 'epic' && t.type === 'phase')).length + 1;
     switch (entityType) {
+      case 'epic':
       case 'phase':
-        return `Fase ${count}: `;
+        return `Épico ${count}: `;
       case 'sprint':
         return `Sprint ${count}: `;
       case 'milestone':
@@ -137,7 +138,7 @@ export const TapAndBuildToolbar: React.FC = () => {
       setDuration(0);
     } else if (type === 'sprint') {
       setDuration(10);
-    } else if (type === 'phase') {
+    } else if (type === 'epic' || type === 'phase') {
       setDuration(15);
     } else if (duration === 0) {
       setDuration(5);
@@ -178,11 +179,12 @@ export const TapAndBuildToolbar: React.FC = () => {
         name: finalName,
         type: entityType,
         phaseId: selectedPhaseId || undefined,
+        epicId: selectedPhaseId || undefined,
         duration: finalDuration,
         progress: 0,
         isMilestone: entityType === 'milestone',
         color:
-          entityType === 'phase'
+          entityType === 'epic' || entityType === 'phase'
             ? '#0284C7'
             : entityType === 'sprint'
             ? '#0EA5E9'
@@ -296,17 +298,17 @@ export const TapAndBuildToolbar: React.FC = () => {
             )}
           </div>
 
-          {/* 3. Phase Selector (only if phases exist and type is not a phase) */}
-          {availablePhases.length > 0 && entityType !== 'phase' && (
+          {/* 3. Epic Selector (only if epics exist and type is not an epic) */}
+          {availableEpics.length > 0 && entityType !== 'epic' && entityType !== 'phase' && (
             <div className="relative shrink-0 w-36 sm:w-44">
               <select
                 value={selectedPhaseId}
                 onChange={e => setSelectedPhaseId(e.target.value)}
                 className="w-full bg-gantt-canvas border border-gantt-border text-gantt-primary rounded-xl px-2.5 py-2 text-xs appearance-none focus:outline-none focus:border-safira-500/60 pr-7 cursor-pointer truncate min-h-[38px]"
-                title="Agrupar dentro de uma Fase"
+                title="Agrupar dentro de um Épico"
               >
-                <option value="">Sem Fase (Raiz)</option>
-                {availablePhases.map(p => (
+                <option value="">Sem Épico (Raiz)</option>
+                {availableEpics.map(p => (
                   <option key={p.id} value={p.id}>
                     📁 {p.name}
                   </option>

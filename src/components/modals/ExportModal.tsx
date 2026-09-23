@@ -10,7 +10,9 @@ import {
   Printer,
   Download,
   Upload,
+  Layers,
 } from 'lucide-react';
+import { generateScrumSvg, downloadScrumSvg } from '../../engine/scrumSvgEngine';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -20,7 +22,7 @@ interface ExportModalProps {
 export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => {
   const { project, loadProject } = useGantt();
 
-  const [activeTab, setActiveTab] = useState<'mermaid' | 'json' | 'print'>('mermaid');
+  const [activeTab, setActiveTab] = useState<'mermaid' | 'json' | 'print' | 'scrum-svg'>('scrum-svg');
   const [copied, setCopied] = useState(false);
   const [mermaidInput, setMermaidInput] = useState('');
 
@@ -30,6 +32,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
 
   const jsonCode = useMemo(() => {
     return JSON.stringify(project, null, 2);
+  }, [project]);
+
+  const scrumSvgCode = useMemo(() => {
+    return generateScrumSvg(project);
   }, [project]);
 
   if (!isOpen) return null;
@@ -104,10 +110,23 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
         <div className="flex items-center gap-2 px-6 pt-4 border-b border-obsidian-800 text-xs font-semibold">
           <button
             type="button"
+            onClick={() => setActiveTab('scrum-svg')}
+            className={`flex items-center gap-2 pb-3 px-2 border-b-2 transition-all cursor-pointer ${
+              activeTab === 'scrum-svg'
+                ? 'border-safira-500 text-safira-400 font-bold'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>Diagrama Scrum (SVG)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab('mermaid')}
             className={`flex items-center gap-2 pb-3 px-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'mermaid'
-                ? 'border-safira-500 text-safira-400'
+                ? 'border-safira-500 text-safira-400 font-bold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -120,7 +139,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
             onClick={() => setActiveTab('json')}
             className={`flex items-center gap-2 pb-3 px-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'json'
-                ? 'border-safira-500 text-safira-400'
+                ? 'border-safira-500 text-safira-400 font-bold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -133,7 +152,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
             onClick={() => setActiveTab('print')}
             className={`flex items-center gap-2 pb-3 px-2 border-b-2 transition-all cursor-pointer ${
               activeTab === 'print'
-                ? 'border-safira-500 text-safira-400'
+                ? 'border-safira-500 text-safira-400 font-bold'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -215,6 +234,41 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
                   <Download className="w-3.5 h-3.5" />
                   <span>Baixar Arquivo .json</span>
                 </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'scrum-svg' && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-slate-400">
+                  Diagrama vetorial da arquitetura Scrum por Épicos, Histórias e Sprint gerado em tempo real:
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(scrumSvgCode)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-obsidian-800 hover:bg-obsidian-750 text-slate-200 rounded-xl text-xs font-bold transition-all border border-obsidian-700"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? 'Copiado!' : 'Copiar SVG'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadScrumSvg(project)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-safira-600 hover:bg-safira-500 text-white rounded-xl text-xs font-bold transition-all shadow-glow-safira"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Baixar Arquivo .SVG</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-slate-300 overflow-x-auto max-h-96">
+                <div
+                  className="min-w-[1000px] flex justify-center"
+                  dangerouslySetInnerHTML={{ __html: scrumSvgCode }}
+                />
               </div>
             </div>
           )}

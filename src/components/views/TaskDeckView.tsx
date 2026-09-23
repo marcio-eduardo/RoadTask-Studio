@@ -22,11 +22,11 @@ interface TaskDeckViewProps {
 export const TaskDeckView: React.FC<TaskDeckViewProps> = ({ onEditTask }) => {
   const { project, updateTaskProgress, deleteTask, setSelectedTaskId, selectedTaskId } = useGantt();
 
-  // Find phase name for tasks
-  const getPhaseName = (phaseId?: string) => {
-    if (!phaseId) return null;
-    const phase = project.tasks.find(t => t.id === phaseId);
-    return phase ? phase.name : null;
+  // Find epic name for tasks
+  const getEpicName = (epicId?: string) => {
+    if (!epicId) return null;
+    const epic = project.tasks.find(t => t.id === epicId);
+    return epic ? epic.name : null;
   };
 
   return (
@@ -41,14 +41,14 @@ export const TaskDeckView: React.FC<TaskDeckViewProps> = ({ onEditTask }) => {
               Projeto em Branco
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-              Nenhuma atividade cadastrada. Use o construtor acima para adicionar a primeira Fase, Sprint ou Tarefa.
+              Nenhuma atividade cadastrada. Use o construtor acima para adicionar o primeiro Épico, Sprint ou Tarefa.
             </p>
           </div>
         )}
         {project.tasks.map(task => {
           const isSelected = selectedTaskId === task.id;
           const isMilestone = task.isMilestone || task.type === 'milestone';
-          const phaseName = getPhaseName(task.phaseId);
+          const epicName = getEpicName(task.epicId || task.phaseId);
 
           return (
             <div
@@ -63,10 +63,10 @@ export const TaskDeckView: React.FC<TaskDeckViewProps> = ({ onEditTask }) => {
               {/* Header: Badges & Actions */}
               <div className="flex items-start justify-between gap-3 mb-2.5">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {/* Phase badge */}
-                  {phaseName && (
+                  {/* Epic badge */}
+                  {epicName && (
                     <span className="text-[10px] font-semibold bg-gantt-canvas text-gantt-text-secondary px-2 py-0.5 rounded-md border border-gantt-border">
-                      {phaseName}
+                      Épico: {epicName}
                     </span>
                   )}
 
@@ -75,6 +75,8 @@ export const TaskDeckView: React.FC<TaskDeckViewProps> = ({ onEditTask }) => {
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 ${
                       isMilestone
                         ? 'bg-ouro-500/20 text-ouro-500 border border-ouro-500/30'
+                        : task.type === 'epic' || task.type === 'phase'
+                        ? 'bg-indigo-500/20 text-indigo-500 border border-indigo-500/30'
                         : task.type === 'sprint'
                         ? 'bg-gantt-accent/20 text-gantt-accent border border-gantt-accent/30'
                         : 'bg-esmeralda-500/20 text-esmeralda-500 border border-esmeralda-500/30'

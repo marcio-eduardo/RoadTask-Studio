@@ -9,6 +9,7 @@ import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { GanttTimelineView } from './components/gantt/GanttTimelineView';
 import { TaskDeckView } from './components/views/TaskDeckView';
 import { TaskTableView } from './components/views/TaskTableView';
+import { ScrumView } from './components/views/ScrumView';
 import { TaskDrawer } from './components/modals/TaskDrawer';
 import { BlueprintSelectorModal } from './components/modals/BlueprintSelectorModal';
 import { ExportModal } from './components/modals/ExportModal';
@@ -63,6 +64,11 @@ export const App: React.FC = () => {
         {/* VIEW 1: Timeline (Gantt) */}
         {viewMode === 'timeline' && (
           <GanttTimelineView onSelectTask={handleEditTask} />
+        )}
+
+        {/* VIEW 1.5: Scrum Architecture (Épicos & Sprints) */}
+        {viewMode === 'scrum' && (
+          <ScrumView onEditTask={handleEditTask} />
         )}
 
         {/* VIEW 2: Deck (Mobile Cards) */}

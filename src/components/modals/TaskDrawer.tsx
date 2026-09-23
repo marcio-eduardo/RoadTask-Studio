@@ -158,6 +158,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
       name: name.trim() || task.name,
       type,
       phaseId: phaseId || undefined,
+      epicId: phaseId || undefined,
       startDate,
       duration: type === 'milestone' ? 0 : Math.max(0, duration),
       progress,
@@ -181,7 +182,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
     setSelectedPredId('');
   };
 
-  const availablePhases = project.tasks.filter(t => t.type === 'phase' && t.id !== task.id);
+  const availableEpics = project.tasks.filter(
+    t => (t.type === 'epic' || t.type === 'phase') && t.id !== task.id
+  );
   const candidatePredecessors = project.tasks.filter(
     t => t.id !== task.id && !task.dependencies.some(d => d.targetTaskId === t.id)
   );
@@ -558,7 +561,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
                   Tipo de Elemento
                 </label>
                 <div className="grid grid-cols-4 gap-2">
-                  {(['phase', 'sprint', 'story', 'milestone'] as EntityType[]).map(t => (
+                  {(['epic', 'sprint', 'story', 'milestone'] as EntityType[]).map(t => (
                     <button
                       key={t}
                       type="button"
@@ -568,30 +571,30 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
                         else if (duration === 0) setDuration(5);
                       }}
                       className={`py-2 px-1 rounded-xl font-semibold text-center capitalize transition-all cursor-pointer ${
-                        type === t
+                        type === t || (t === 'epic' && type === 'phase')
                           ? 'bg-safira-600 text-white shadow-glow-safira'
                           : 'bg-gantt-canvas text-gantt-muted border border-gantt-border hover:text-gantt-primary'
                       }`}
                     >
-                      {t}
+                      {t === 'epic' ? 'Épico' : t === 'milestone' ? 'Marco' : t}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Fase / Agrupador */}
-              {type !== 'phase' && availablePhases.length > 0 && (
+              {/* Épico / Agrupador */}
+              {type !== 'epic' && type !== 'phase' && availableEpics.length > 0 && (
                 <div>
                   <label className="block text-gantt-muted font-semibold mb-1 uppercase tracking-wider text-[10px]">
-                    Fase / Agrupador
+                    Épico / Agrupador
                   </label>
                   <select
                     value={phaseId}
                     onChange={e => setPhaseId(e.target.value)}
                     className="w-full bg-gantt-canvas border border-gantt-border text-gantt-primary rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-safira-500"
                   >
-                    <option value="">Nenhuma (Geral)</option>
-                    {availablePhases.map(p => (
+                    <option value="">Nenhum Épico (Geral)</option>
+                    {availableEpics.map(p => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>

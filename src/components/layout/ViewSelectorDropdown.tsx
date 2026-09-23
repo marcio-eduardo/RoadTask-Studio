@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   Table,
   Columns,
+  Layers,
   ChevronDown,
 } from 'lucide-react';
 import { GuidedTarget } from '../guided/GuidedTooltip';
@@ -23,6 +24,12 @@ const VIEW_OPTIONS: ViewOption[] = [
     label: 'Gantt',
     desc: 'Visão temporal de barras SVG com caminho crítico e dependências',
     icon: Calendar,
+  },
+  {
+    mode: 'scrum',
+    label: 'Scrum',
+    desc: 'Arquitetura Scrum por Épicos, Histórias e Sprint com SVG dinâmico',
+    icon: Layers,
   },
   {
     mode: 'deck',
