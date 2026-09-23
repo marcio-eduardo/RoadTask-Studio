@@ -13,6 +13,7 @@ import {
   Diamond,
   Flame,
   Sparkles,
+  MessageSquareText,
 } from 'lucide-react';
 
 interface GanttTimelineViewProps {
@@ -661,6 +662,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                 const isSelected = selectedTaskId === task.id;
                 const isNarrow = !isMilestone && width < 110;
 
+                const latestUpdate = task.updates && task.updates.length > 0 ? task.updates[0].text : task.lastUpdateNote || task.notes;
+                const hasUpdates = (task.updates && task.updates.length > 0) || !!task.lastUpdateNote;
+
                 return (
                   <div
                     key={task.id}
@@ -731,7 +735,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                                 initialProgress: task.progress,
                               });
                             }}
-                            title={`${task.name} • Marco (${task.progress === 100 ? 'Concluído' : 'Pendente'})${task.assignee ? ` • ${task.assignee}` : ''} • [Duplo clique para editar]`}
+                            title={`${task.name} • Marco (${task.progress === 100 ? 'Concluído' : 'Pendente'})${task.assignee ? ` • ${task.assignee}` : ''}${latestUpdate ? ` • [Atualização: ${latestUpdate}]` : ''} • [Duplo clique para editar]`}
                             className={`w-7 h-7 rounded-md rotate-45 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform hover:scale-110 shadow-xs touch-none select-none ${dragState?.taskId === task.id ? 'scale-115 ring-1 ring-safira-400' : ''
                               } ${task.progress === 100
                                 ? 'bg-esmeralda-600 text-white'
@@ -743,6 +747,14 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
 
                           {/* Milestone Label Adjacent */}
                           <div className="absolute left-full ml-3 flex items-center gap-1.5 whitespace-nowrap pointer-events-none z-20">
+                            {hasUpdates && (
+                              <span
+                                className="flex items-center justify-center w-4 h-4 rounded-full bg-safira-500/25 text-safira-400 border border-safira-500/40"
+                                title={`Atualização: ${latestUpdate}`}
+                              >
+                                <MessageSquareText className="w-2.5 h-2.5" />
+                              </span>
+                            )}
                             <span className="text-xs font-bold text-ouro-300 drop-shadow-md">
                               {task.name}
                             </span>
@@ -789,7 +801,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               initialProgress: task.progress,
                             });
                           }}
-                          title={`${task.name} • ${task.duration} dias úteis (${task.progress}% concluído)${task.assignee ? ` • ${task.assignee}` : ''} • [Duplo clique para editar]`}
+                          title={`${task.name} • ${task.duration} dias úteis (${task.progress}% concluído)${task.assignee ? ` • ${task.assignee}` : ''}${latestUpdate ? ` • [Atualização: ${latestUpdate}]` : ''} • [Duplo clique para editar]`}
                           style={{
                             backgroundColor: task.color ? `${task.color}25` : 'var(--gantt-bar-empty-bg)',
                             borderColor: task.isCritical
@@ -826,6 +838,26 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               {task.isCritical && (
                                 <Flame className="w-3.5 h-3.5 text-carmim-400 animate-pulse shrink-0" />
                               )}
+                              {hasUpdates && (
+                                <span
+                                  className="shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-safira-500/25 text-safira-300 border border-safira-500/40"
+                                  title={`Atualização: ${latestUpdate}`}
+                                >
+                                  <MessageSquareText className="w-2.5 h-2.5" />
+                                </span>
+                              )}
+                              {task.health && (
+                                <span
+                                  className={`shrink-0 w-2 h-2 rounded-full ${
+                                    task.health === 'on_track'
+                                      ? 'bg-esmeralda-400'
+                                      : task.health === 'at_risk'
+                                      ? 'bg-ouro-400'
+                                      : 'bg-carmim-400'
+                                  }`}
+                                  title={`Saúde: ${task.health}`}
+                                />
+                              )}
                               <span className="truncate">{task.name}</span>
                               <span className="text-[10px] font-semibold text-slate-700 dark:text-white shrink-0 tabular-nums bg-slate-900/10 dark:bg-black/40 px-1.5 py-0.5 rounded border border-gantt-border shadow-xs">
                                 {task.duration}d{task.progress > 0 ? ` (${task.progress}%)` : ''}
@@ -844,6 +876,25 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               <div className="absolute left-full ml-2.5 flex items-center gap-1.5 whitespace-nowrap pointer-events-none z-20">
                                 {task.isCritical && (
                                   <Flame className="w-3.5 h-3.5 text-carmim-400 animate-pulse shrink-0" />
+                                )}
+                                {hasUpdates && (
+                                  <span
+                                    className="shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-safira-500/25 text-safira-400 border border-safira-500/40"
+                                    title={`Atualização: ${latestUpdate}`}
+                                  >
+                                    <MessageSquareText className="w-2.5 h-2.5" />
+                                  </span>
+                                )}
+                                {task.health && (
+                                  <span
+                                    className={`shrink-0 w-2 h-2 rounded-full ${
+                                      task.health === 'on_track'
+                                        ? 'bg-esmeralda-400'
+                                        : task.health === 'at_risk'
+                                        ? 'bg-ouro-400'
+                                        : 'bg-carmim-400'
+                                    }`}
+                                  />
                                 )}
                                 <span className="text-xs font-bold text-gantt-text-primary drop-shadow-md">
                                   {task.name}

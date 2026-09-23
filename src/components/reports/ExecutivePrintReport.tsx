@@ -280,11 +280,18 @@ export const ExecutivePrintReport: React.FC = () => {
                   #{idx + 1}
                 </td>
                 <td className="py-1.5 px-2 border-r border-slate-200">
-                  <div className="flex items-center gap-1.5">
-                    {t.isMilestone && (
-                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1.5">
+                      {t.isMilestone && (
+                        <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                      )}
+                      <span>{t.name}</span>
+                    </div>
+                    {((t.updates && t.updates.length > 0) || t.lastUpdateNote) && (
+                      <span className="text-[9px] text-sky-800 italic mt-0.5">
+                        ↳ Atualização: {t.updates && t.updates.length > 0 ? t.updates[0].text : t.lastUpdateNote}
+                      </span>
                     )}
-                    <span>{t.name}</span>
                   </div>
                 </td>
                 <td className="py-1.5 px-2 border-r border-slate-200 capitalize text-slate-600">

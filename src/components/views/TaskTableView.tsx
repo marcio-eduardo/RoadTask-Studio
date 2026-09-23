@@ -7,6 +7,7 @@ import {
   Flame,
   Trash2,
   Edit2,
+  MessageSquareText,
 } from 'lucide-react';
 
 interface TaskTableViewProps {
@@ -67,24 +68,46 @@ export const TaskTableView: React.FC<TaskTableViewProps> = ({ onEditTask }) => {
 
                     {/* Task Name with indentation */}
                     <td className="py-3 px-4">
-                      <div className={`flex items-center gap-2 ${isChild ? 'pl-5' : ''}`}>
-                        {isMilestone ? (
-                          <Diamond className="w-3.5 h-3.5 text-ouro-500 shrink-0" />
-                        ) : task.isCritical ? (
-                          <Flame className="w-3.5 h-3.5 text-carmim-500 shrink-0" />
-                        ) : (
-                          <div
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: task.color || 'var(--gantt-brand-accent)' }}
-                          />
+                      <div className="flex flex-col truncate">
+                        <div className={`flex items-center gap-2 ${isChild ? 'pl-5' : ''}`}>
+                          {isMilestone ? (
+                            <Diamond className="w-3.5 h-3.5 text-ouro-500 shrink-0" />
+                          ) : task.isCritical ? (
+                            <Flame className="w-3.5 h-3.5 text-carmim-500 shrink-0" />
+                          ) : (
+                            <div
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: task.color || 'var(--gantt-brand-accent)' }}
+                            />
+                          )}
+                          <span
+                            className={`font-semibold text-gantt-text-primary ${
+                              task.type === 'phase' ? 'text-sm font-bold text-gantt-accent' : ''
+                            }`}
+                          >
+                            {task.name}
+                          </span>
+                          {task.health && (
+                            <span
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                task.health === 'on_track'
+                                  ? 'bg-esmeralda-400'
+                                  : task.health === 'at_risk'
+                                  ? 'bg-ouro-400'
+                                  : 'bg-carmim-400'
+                              }`}
+                              title={`Saúde: ${task.health}`}
+                            />
+                          )}
+                        </div>
+                        {((task.updates && task.updates.length > 0) || task.lastUpdateNote) && (
+                          <div className={`flex items-center gap-1 text-[11px] text-safira-400 mt-0.5 truncate ${isChild ? 'pl-5' : ''}`}>
+                            <MessageSquareText className="w-3 h-3 shrink-0" />
+                            <span className="truncate">
+                              {task.updates && task.updates.length > 0 ? task.updates[0].text : task.lastUpdateNote}
+                            </span>
+                          </div>
                         )}
-                        <span
-                          className={`font-semibold text-gantt-text-primary ${
-                            task.type === 'phase' ? 'text-sm font-bold text-gantt-accent' : ''
-                          }`}
-                        >
-                          {task.name}
-                        </span>
                       </div>
                     </td>
 

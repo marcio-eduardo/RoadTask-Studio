@@ -11,6 +11,24 @@ export interface TaskDependency {
   lag?: number; // Lag/lead in work days
 }
 
+export type TaskStatus = 'not_started' | 'in_progress' | 'in_review' | 'completed' | 'blocked' | 'paused';
+
+export type TaskHealth = 'on_track' | 'at_risk' | 'delayed' | 'blocked';
+
+export interface TaskUpdateItem {
+  id: string;
+  timestamp: string; // ISO timestamp
+  text: string; // Ex: "Alinhado reunião" ou "Criado API para consumo de dados"
+  author?: string;
+  category?: 'general' | 'meeting' | 'technical' | 'delivery' | 'blocker';
+}
+
+export interface TaskChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 export interface Task {
   id: string;
   name: string;
@@ -25,6 +43,15 @@ export interface Task {
   color?: string;
   isMilestone?: boolean;
   notes?: string;
+
+  // Status & Atualizações Operacionais do Projeto
+  status?: TaskStatus;
+  health?: TaskHealth;
+  updates?: TaskUpdateItem[];
+  checklist?: TaskChecklistItem[];
+  actualStartDate?: string;
+  actualEndDate?: string;
+  lastUpdateNote?: string;
 
   // CPM (Critical Path Method) Computed Fields
   isCritical?: boolean;

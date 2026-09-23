@@ -12,6 +12,7 @@ import {
   Link,
   Flame,
   Sparkles,
+  MessageSquareText,
 } from 'lucide-react';
 
 interface TaskDeckViewProps {
@@ -86,8 +87,31 @@ export const TaskDeckView: React.FC<TaskDeckViewProps> = ({ onEditTask }) => {
                   {/* Critical path badge */}
                   {task.isCritical && (
                     <span className="text-[10px] font-bold bg-carmim-500/20 text-carmim-500 border border-carmim-500/30 px-2 py-0.5 rounded-md flex items-center gap-1 animate-pulse">
-                      <Flame className="w-3 h-3 text-carmim-500" />
+                      <Flame className="w-3.5 h-3.5 text-carmim-500" />
                       <span>Caminho Crítico</span>
+                    </span>
+                  )}
+
+                  {/* Status badge */}
+                  {task.status && (
+                    <span className="text-[10px] font-semibold bg-safira-500/15 text-safira-400 border border-safira-500/30 px-2 py-0.5 rounded-md">
+                      {task.status === 'not_started' ? 'Não Iniciada' : task.status === 'in_progress' ? 'Em Andamento' : task.status === 'in_review' ? 'Em Revisão' : task.status === 'completed' ? 'Concluída' : task.status === 'blocked' ? 'Bloqueada' : 'Pausada'}
+                    </span>
+                  )}
+
+                  {/* Health badge */}
+                  {task.health && (
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                        task.health === 'on_track'
+                          ? 'bg-esmeralda-500/15 text-esmeralda-400 border-esmeralda-500/30'
+                          : task.health === 'at_risk'
+                          ? 'bg-ouro-500/15 text-ouro-400 border-ouro-500/30'
+                          : 'bg-carmim-500/15 text-carmim-400 border-carmim-500/30'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${task.health === 'on_track' ? 'bg-esmeralda-400' : task.health === 'at_risk' ? 'bg-ouro-400' : 'bg-carmim-400'}`} />
+                      <span>{task.health === 'on_track' ? 'No Prazo' : task.health === 'at_risk' ? 'Em Risco' : 'Atrasada'}</span>
                     </span>
                   )}
                 </div>
@@ -167,6 +191,21 @@ export const TaskDeckView: React.FC<TaskDeckViewProps> = ({ onEditTask }) => {
                         </span>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* Latest update note */}
+              {((task.updates && task.updates.length > 0) || task.lastUpdateNote) && (
+                <div className="flex items-start gap-2 text-xs bg-safira-500/10 border border-safira-500/25 rounded-xl p-2.5 mb-3">
+                  <MessageSquareText className="w-3.5 h-3.5 text-safira-400 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <span className="font-bold text-[10px] text-safira-400 uppercase tracking-wider block">
+                      Última Atualização:
+                    </span>
+                    <p className="text-xs text-gantt-text-primary font-medium mt-0.5">
+                      {task.updates && task.updates.length > 0 ? task.updates[0].text : task.lastUpdateNote}
+                    </p>
                   </div>
                 </div>
               )}

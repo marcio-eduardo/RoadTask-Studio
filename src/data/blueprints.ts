@@ -54,6 +54,25 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           progress: 100,
           dependencies: [],
           color: '#0284C7',
+          status: 'completed',
+          health: 'on_track',
+          updates: [
+            {
+              id: 'upd_sw1_1',
+              timestamp: '2026-09-21T14:30:00Z',
+              text: 'Alinhado reunião de arquitetura e requisitos com stakeholders',
+              author: 'Engenheiro de Soluções',
+              category: 'meeting',
+            },
+            {
+              id: 'upd_sw1_2',
+              timestamp: '2026-09-22T11:00:00Z',
+              text: 'Criado API para consumo de dados e barramento REST',
+              author: 'Squad Backend',
+              category: 'technical',
+            },
+          ],
+          lastUpdateNote: 'Criado API para consumo de dados e barramento REST',
         },
         {
           id: 'sw_2',
