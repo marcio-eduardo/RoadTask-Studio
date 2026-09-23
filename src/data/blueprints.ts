@@ -69,6 +69,11 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           dependencies: [],
           status: 'in_progress',
           assignee: 'Squad Torre',
+          subtasks: [
+            { id: 'sub_g1_1', name: 'Mapear grid de veículos e cards de status', completed: true, status: 'done' },
+            { id: 'sub_g1_2', name: 'Integrar endpoint de telemetria /frota/status', completed: true, status: 'done' },
+            { id: 'sub_g1_3', name: 'Filtros rápidos por filial e alertas de revisão', completed: false, status: 'todo' },
+          ],
         },
         {
           id: 'story_gestor_2',
@@ -79,10 +84,14 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           startDate: '2026-10-05',
           duration: 8,
           endDate: '2026-10-14',
-          progress: 10,
+          progress: 0,
           dependencies: [{ id: 'dep_g1', targetTaskId: 'story_gestor_1', type: 'FS' }],
           status: 'not_started',
           assignee: 'Squad Torre',
+          subtasks: [
+            { id: 'sub_g2_1', name: 'Formulário de despacho e termo de responsabilidade', completed: false, status: 'todo' },
+            { id: 'sub_g2_2', name: 'Validação de CNH do motorista / técnico', completed: false, status: 'todo' },
+          ],
         },
         {
           id: 'epic_tecnico',
@@ -109,6 +118,11 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           dependencies: [],
           status: 'in_progress',
           assignee: 'Squad Mobile',
+          subtasks: [
+            { id: 'sub_t1_1', name: 'Tela Meu Veículo: odômetro e nível de combustível', completed: true, status: 'done' },
+            { id: 'sub_t1_2', name: 'Checklist diário fotográfico de avarias', completed: true, status: 'done' },
+            { id: 'sub_t1_3', name: 'Assinatura digital do termo de cautela no app', completed: false, status: 'todo' },
+          ],
         },
         {
           id: 'story_tecnico_2',
@@ -123,6 +137,10 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           dependencies: [{ id: 'dep_t1', targetTaskId: 'story_tecnico_1', type: 'FS' }],
           status: 'not_started',
           assignee: 'Squad Backend/Push',
+          subtasks: [
+            { id: 'sub_t2_1', name: 'Motor de regras de agendamento de revisão por KM', completed: false, status: 'todo' },
+            { id: 'sub_t2_2', name: 'Disparo de push notifications com cobrança ao técnico', completed: false, status: 'todo' },
+          ],
         },
         {
           id: 'sprint_1',
@@ -159,6 +177,10 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           dependencies: [],
           status: 'completed',
           assignee: 'Backend Dev',
+          subtasks: [
+            { id: 'sub_sp1_1', name: 'Schema OpenAPI e validação de payload', completed: true, status: 'done' },
+            { id: 'sub_sp1_2', name: 'Testes de integração com banco de dados', completed: true, status: 'done' },
+          ],
         },
         {
           id: 'task_sp_2',
@@ -173,6 +195,10 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           dependencies: [{ id: 'dep_sp1', targetTaskId: 'task_sp_1', type: 'FS' }],
           status: 'in_progress',
           assignee: 'Mobile Dev',
+          subtasks: [
+            { id: 'sub_sp2_1', name: 'Layout mobile dos cards de status do veículo', completed: true, status: 'done' },
+            { id: 'sub_sp2_2', name: 'Integração de câmera para foto do odômetro', completed: false, status: 'in_progress' },
+          ],
         },
         {
           id: 'task_sp_3',
@@ -187,6 +213,10 @@ export const BLUEPRINTS: { id: string; name: string; description: string; icon: 
           dependencies: [],
           status: 'in_progress',
           assignee: 'QA / Cloud',
+          subtasks: [
+            { id: 'sub_sp3_1', name: 'FCM push notification setup', completed: true, status: 'done' },
+            { id: 'sub_sp3_2', name: 'Templates de mensagem de cobrança', completed: false, status: 'todo' },
+          ],
         },
         {
           id: 'milestone_frotas_1',

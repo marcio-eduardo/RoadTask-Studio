@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useGantt } from '../../context/GanttContext';
-import { Task, isEpic, getTaskEpicId } from '../../types/gantt';
+import { Task, isEpic, getTaskEpicId, getTaskSubtasks } from '../../types/gantt';
 import {
   parseDateUtc,
   formatDateUtc,
@@ -14,6 +14,8 @@ import {
   Flame,
   Sparkles,
   MessageSquareText,
+  Zap,
+  CheckSquare,
 } from 'lucide-react';
 
 interface GanttTimelineViewProps {
@@ -657,6 +659,9 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
               {displayTasks.map((task, idx) => {
                 const startX = getXForDate(task.startDate);
                 const isMilestone = task.isMilestone || task.type === 'milestone' || task.duration === 0;
+                const isSprint = task.type === 'sprint';
+                const subtasks = getTaskSubtasks(task);
+                const completedSubtasksCount = subtasks.filter(s => s.completed).length;
                 const width = isMilestone ? 28 : Math.max(colWidth * 0.8, task.duration * colWidth);
                 const topY = idx * rowHeight;
                 const isSelected = selectedTaskId === task.id;
@@ -764,7 +769,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                           </div>
                         </div>
                       ) : (
-                        /* REGULAR TASK BAR */
+                        /* REGULAR TASK BAR / SPRINT TIMEBOX */
                         <div
                           onClick={e => {
                             e.stopPropagation();
@@ -801,27 +806,35 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                               initialProgress: task.progress,
                             });
                           }}
-                          title={`${task.name} • ${task.duration} dias úteis (${task.progress}% concluído)${task.assignee ? ` • ${task.assignee}` : ''}${latestUpdate ? ` • [Atualização: ${latestUpdate}]` : ''} • [Duplo clique para editar]`}
+                          title={`${task.name} • ${isSprint ? 'Timebox Sprint' : 'História'} (${task.duration} dias úteis, ${task.progress}% concluído)${task.assignee ? ` • ${task.assignee}` : ''}${latestUpdate ? ` • [Atualização: ${latestUpdate}]` : ''} • [Duplo clique para abrir tarefas]`}
                           style={{
-                            backgroundColor: task.color ? `${task.color}25` : 'var(--gantt-bar-empty-bg)',
-                            borderColor: task.isCritical
-                              ? 'var(--gantt-critical-alert, rgba(244, 63, 94, 0.55))'
-                              : isSelected
-                                ? 'var(--gantt-accent-focus, rgba(8, 145, 178, 0.75))'
-                                : task.color
-                                  ? `${task.color}45`
-                                  : 'var(--gantt-bar-empty-border)',
+                            backgroundColor: isSprint
+                              ? 'rgba(124, 58, 237, 0.12)'
+                              : task.color
+                                ? `${task.color}25`
+                                : 'var(--gantt-bar-empty-bg)',
+                            borderColor: isSprint
+                              ? 'rgba(124, 58, 237, 0.65)'
+                              : task.isCritical
+                                ? 'var(--gantt-critical-alert, rgba(244, 63, 94, 0.55))'
+                                : isSelected
+                                  ? 'var(--gantt-accent-focus, rgba(8, 145, 178, 0.75))'
+                                  : task.color
+                                    ? `${task.color}45`
+                                    : 'var(--gantt-bar-empty-border)',
+                            borderStyle: isSprint ? 'dashed' : 'solid',
+                            borderWidth: isSprint ? '2px' : '1px',
                           }}
                           className={`relative w-full h-9 rounded-xl border flex items-center shadow-xs cursor-grab active:cursor-grabbing transition-all overflow-visible touch-none select-none ${dragState?.taskId === task.id ? 'scale-[1.01] shadow-lg z-30 opacity-95 ring-1 ring-safira-500/40' : ''
                             } ${task.isCritical ? 'ring-1 ring-carmim-500/30' : ''
                             } ${isSelected ? 'ring-1 ring-safira-500/40' : ''}`}
                         >
-                          {/* Progress Fill Indicator (Preenchimento progressivo conforme avança até 100%) */}
+                          {/* Progress Fill Indicator */}
                           {task.progress > 0 && (
                             <div
                               style={{
                                 width: `${Math.min(100, Math.max(0, task.progress))}%`,
-                                backgroundColor: task.color || '#4F46E5',
+                                backgroundColor: isSprint ? 'rgba(124, 58, 237, 0.35)' : task.color || '#4F46E5',
                               }}
                               className={`absolute left-0 top-0 bottom-0 transition-all ${task.progress >= 100 ? 'rounded-xl' : 'rounded-l-xl'
                                 }`}
@@ -833,11 +846,14 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                           {/* Task Title & Meta Label Inside Bar (quando barra for larga) */}
                           {!isNarrow && (
                             <div className={`relative z-10 px-3 flex items-center gap-2 text-xs font-bold ${
-                              task.progress >= 60 ? 'text-white' : 'text-slate-800 dark:text-white'
+                              task.progress >= 60 && !isSprint ? 'text-white' : 'text-slate-800 dark:text-white'
                             } drop-shadow-sm truncate pointer-events-none w-full min-w-0`}>
-                              {task.isCritical && (
+                              {isSprint ? (
+                                <Zap className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                              ) : task.isCritical ? (
                                 <Flame className="w-3.5 h-3.5 text-carmim-400 animate-pulse shrink-0" />
-                              )}
+                              ) : null}
+
                               {hasUpdates && (
                                 <span
                                   className="shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-safira-500/25 text-safira-300 border border-safira-500/40"
@@ -846,6 +862,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                                   <MessageSquareText className="w-2.5 h-2.5" />
                                 </span>
                               )}
+
                               {task.health && (
                                 <span
                                   className={`shrink-0 w-2 h-2 rounded-full ${
@@ -858,10 +875,32 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                                   title={`Saúde: ${task.health}`}
                                 />
                               )}
+
                               <span className="truncate">{task.name}</span>
-                              <span className="text-[10px] font-semibold text-slate-700 dark:text-white shrink-0 tabular-nums bg-slate-900/10 dark:bg-black/40 px-1.5 py-0.5 rounded border border-gantt-border shadow-xs">
-                                {task.duration}d{task.progress > 0 ? ` (${task.progress}%)` : ''}
-                              </span>
+
+                              {/* Se for Sprint, mostra tag Timebox */}
+                              {isSprint ? (
+                                <span className="text-[9.5px] font-bold uppercase tracking-wider text-purple-300 bg-purple-500/25 border border-purple-500/40 px-1.5 py-0.5 rounded shrink-0">
+                                  Timebox ({task.duration}d)
+                                </span>
+                              ) : (
+                                <>
+                                  {/* Se tiver subtasks, mostra contagem */}
+                                  {subtasks.length > 0 && (
+                                    <span
+                                      className="text-[9.5px] font-bold text-esmeralda-300 bg-esmeralda-500/20 border border-esmeralda-500/30 px-1.5 py-0.5 rounded shrink-0 flex items-center gap-1"
+                                      title={`Tarefas concluídas: ${completedSubtasksCount} de ${subtasks.length}`}
+                                    >
+                                      <CheckSquare className="w-2.5 h-2.5" />
+                                      {completedSubtasksCount}/{subtasks.length}
+                                    </span>
+                                  )}
+
+                                  <span className="text-[10px] font-semibold text-slate-700 dark:text-white shrink-0 tabular-nums bg-slate-900/10 dark:bg-black/40 px-1.5 py-0.5 rounded border border-gantt-border shadow-xs">
+                                    {task.duration}d{task.progress > 0 ? ` (${task.progress}%)` : ''}
+                                  </span>
+                                </>
+                              )}
                             </div>
                           )}
 
@@ -869,14 +908,17 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                           {isNarrow && (
                             <>
                               <div className={`relative z-10 px-2 flex items-center justify-center pointer-events-none w-full text-[10px] font-bold ${
-                                task.progress >= 60 ? 'text-white' : 'text-slate-800 dark:text-white'
+                                task.progress >= 60 && !isSprint ? 'text-white' : 'text-slate-800 dark:text-white'
                               } drop-shadow-sm`}>
                                 {task.duration}d
                               </div>
                               <div className="absolute left-full ml-2.5 flex items-center gap-1.5 whitespace-nowrap pointer-events-none z-20">
-                                {task.isCritical && (
+                                {isSprint ? (
+                                  <Zap className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                                ) : task.isCritical ? (
                                   <Flame className="w-3.5 h-3.5 text-carmim-400 animate-pulse shrink-0" />
-                                )}
+                                ) : null}
+
                                 {hasUpdates && (
                                   <span
                                     className="shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-safira-500/25 text-safira-400 border border-safira-500/40"
@@ -885,6 +927,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                                     <MessageSquareText className="w-2.5 h-2.5" />
                                   </span>
                                 )}
+
                                 {task.health && (
                                   <span
                                     className={`shrink-0 w-2 h-2 rounded-full ${
@@ -896,9 +939,17 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                                     }`}
                                   />
                                 )}
+
                                 <span className="text-xs font-bold text-gantt-text-primary drop-shadow-md">
                                   {task.name}
                                 </span>
+
+                                {subtasks.length > 0 && (
+                                  <span className="text-[9.5px] font-bold text-esmeralda-300 bg-esmeralda-500/20 border border-esmeralda-500/30 px-1.5 py-0.5 rounded shadow-xs">
+                                    {completedSubtasksCount}/{subtasks.length}
+                                  </span>
+                                )}
+
                                 <span className="text-[10px] font-medium text-gantt-text-secondary bg-gantt-card/90 px-1.5 py-0.5 rounded border border-gantt-border shadow-xs">
                                   {task.duration}d{task.progress > 0 ? ` (${task.progress}%)` : ''}
                                 </span>

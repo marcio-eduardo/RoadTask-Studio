@@ -1,4 +1,4 @@
-import { Project, Task, isEpic, getTaskEpicId } from '../types/gantt';
+import { Project, Task, isEpic, getTaskEpicId, getTaskSubtasks } from '../types/gantt';
 
 function escapeXml(unsafe: string): string {
   return unsafe
@@ -74,6 +74,11 @@ export function generateScrumSvg(project: Project): string {
     t => t.type !== 'epic' && t.type !== 'phase' && t.type !== 'sprint' && (t.phaseId === activeSprint?.id || t.epicId === activeSprint?.id)
   );
 
+  const directSubtasks = sprintStories.flatMap(s => getTaskSubtasks(s));
+  const developerTasks = directSubtasks.length > 0
+    ? directSubtasks.map(st => ({ name: st.name, progress: st.completed ? 100 : 0 }))
+    : sprintTasks.map(t => ({ name: t.name, progress: t.progress || 0 }));
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalSvgWidth} ${totalSvgHeight}" width="${totalSvgWidth}" height="${totalSvgHeight}" style="background:#f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
   <defs>
@@ -115,7 +120,7 @@ export function generateScrumSvg(project: Project): string {
     <text x="30" y="298" font-size="13" font-weight="700" fill="#0f172a">🛠️ Tasks Técnicas dos Developers:</text>
 
     ${
-      (sprintTasks.length > 0 ? sprintTasks.slice(0, 5) : [
+      (developerTasks.length > 0 ? developerTasks.slice(0, 5) : [
         { name: 'API REST: Endpoints de dados e regras de negócio', progress: 100 },
         { name: 'Frontend / Mobile: Interface e telas da persona', progress: 50 },
         { name: 'Push & Notificações: Mensageria e regras de alerta', progress: 0 },

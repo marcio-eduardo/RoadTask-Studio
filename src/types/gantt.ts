@@ -32,6 +32,31 @@ export interface TaskChecklistItem {
   completed: boolean;
 }
 
+export interface SubTask {
+  id: string;
+  name: string;
+  completed: boolean;
+  status?: 'todo' | 'in_progress' | 'done';
+  dueDate?: string;
+  assignee?: string;
+  postponedCount?: number;
+}
+
+export const getTaskSubtasks = (task: Partial<Task>): SubTask[] => {
+  if (task.subtasks && task.subtasks.length > 0) {
+    return task.subtasks;
+  }
+  if (task.checklist && task.checklist.length > 0) {
+    return task.checklist.map(c => ({
+      id: c.id,
+      name: c.text,
+      completed: c.completed,
+      status: c.completed ? 'done' : 'todo',
+    }));
+  }
+  return [];
+};
+
 export interface Task {
   id: string;
   name: string;
@@ -53,6 +78,7 @@ export interface Task {
   health?: TaskHealth;
   updates?: TaskUpdateItem[];
   checklist?: TaskChecklistItem[];
+  subtasks?: SubTask[];
   actualStartDate?: string;
   actualEndDate?: string;
   lastUpdateNote?: string;

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useGantt } from '../../context/GanttContext';
-import { Task, isEpic, getTaskEpicId } from '../../types/gantt';
+import { Task, isEpic, getTaskEpicId, getTaskSubtasks } from '../../types/gantt';
 import { generateScrumSvg, downloadScrumSvg, copyScrumSvg } from '../../engine/scrumSvgEngine';
 import {
   Download,
@@ -273,12 +273,12 @@ export const ScrumView: React.FC<ScrumViewProps> = ({ onEditTask }) => {
                           {getStatusBadge(task.status)}
                         </div>
 
-                        {/* Checklist se houver */}
-                        {task.checklist && task.checklist.length > 0 && (
+                        {/* Tasks / Checklist da História */}
+                        {getTaskSubtasks(task).length > 0 && (
                           <div className="mt-2 pt-2 border-t border-gantt-border flex items-center justify-between text-[10.5px] text-gantt-muted">
-                            <span>Checklist de Aceite:</span>
+                            <span>Tarefas da História:</span>
                             <span className="font-mono font-bold text-purple-600">
-                              {task.checklist.filter(c => c.completed).length}/{task.checklist.length}
+                              {getTaskSubtasks(task).filter(c => c.completed).length}/{getTaskSubtasks(task).length}
                             </span>
                           </div>
                         )}
