@@ -1,4 +1,4 @@
-import { Task, Project } from '../types/gantt';
+import { Task, Project, isEpic, getTaskEpicId } from '../types/gantt';
 
 /**
  * Converts project tasks into standard Mermaid.js Gantt chart format.
@@ -7,34 +7,62 @@ export function exportToMermaid(project: Project): string {
   let output = `gantt\n`;
   output += `    title ${project.name}\n`;
   output += `    dateFormat YYYY-MM-DD\n`;
-  output += `    axisFormat %d/%m\n\n`;
+  output += `    axisFormat %d/%m\n`;
+  output += `    excludes weekends\n\n`;
 
-  // Group tasks by phase or render as flat
-  const phases = project.tasks.filter(t => t.type === 'phase');
+  // Group tasks by epic or phase
+  const epicsOrPhases = project.tasks.filter(isEpic);
 
-  if (phases.length > 0) {
-    for (const phase of phases) {
-      output += `    section ${phase.name}\n`;
-      const phaseChildren = project.tasks.filter(t => t.phaseId === phase.id);
+  if (epicsOrPhases.length > 0) {
+    for (const ep of epicsOrPhases) {
+      output += `    section ${ep.name}\n`;
+      const children = project.tasks.filter(
+        t => (t.phaseId === ep.id || t.epicId === ep.id) && !isEpic(t) && t.type !== 'sprint'
+      );
 
-      for (const t of phaseChildren) {
+      for (const t of children) {
         output += formatMermaidTaskLine(t);
       }
       output += `\n`;
     }
 
-    // Unassigned tasks
-    const unassigned = project.tasks.filter(t => t.type !== 'phase' && !t.phaseId);
+    // Sprints section if sprints exist
+    const sprints = project.tasks.filter(t => t.type === 'sprint');
+    if (sprints.length > 0) {
+      output += `    section Sprints (Ciclos Ágeis)\n`;
+      for (const sp of sprints) {
+        output += formatMermaidTaskLine(sp);
+      }
+      output += `\n`;
+    }
+
+    // Unassigned / Milestones tasks
+    const unassigned = project.tasks.filter(
+      t => !isEpic(t) && t.type !== 'sprint' && (!getTaskEpicId(t) || !epicsOrPhases.some(p => p.id === getTaskEpicId(t)))
+    );
     if (unassigned.length > 0) {
-      output += `    section Atividades Gerais\n`;
+      output += `    section Marcos & Entregas\n`;
       for (const t of unassigned) {
         output += formatMermaidTaskLine(t);
       }
     }
   } else {
-    output += `    section Cronograma\n`;
-    for (const t of project.tasks) {
-      output += formatMermaidTaskLine(t);
+    // Flat / Sprints
+    const sprints = project.tasks.filter(t => t.type === 'sprint');
+    if (sprints.length > 0) {
+      output += `    section Sprints (Ciclos Ágeis)\n`;
+      for (const sp of sprints) {
+        output += formatMermaidTaskLine(sp);
+      }
+      output += `\n`;
+    }
+
+    const nonSprints = project.tasks.filter(t => t.type !== 'sprint');
+    if (nonSprints.length > 0) {
+      output += `    section Cronograma\n`;
+      for (const t of nonSprints) {
+        output += formatMermaidTaskLine(t);
+      }
     }
   }
 
@@ -48,19 +76,19 @@ function formatMermaidTaskLine(t: Task): string {
   const milestoneModifier = t.isMilestone || t.type === 'milestone' ? 'milestone, ' : '';
 
   const prefix = `${statusModifier}${critModifier}${milestoneModifier}`.trim();
-  const id = `t_${t.id.slice(0, 6)}`;
+  const id = t.id.replace(/[^a-zA-Z0-9_]/g, '_');
 
   let timeSpec = '';
   if (t.dependencies && t.dependencies.length > 0) {
     const primaryDep = t.dependencies[0];
-    const predId = `t_${primaryDep.targetTaskId.slice(0, 6)}`;
+    const predId = primaryDep.targetTaskId.replace(/[^a-zA-Z0-9_]/g, '_');
     timeSpec = `after ${predId}, ${t.duration}d`;
   } else {
     timeSpec = `${t.startDate}, ${t.duration}d`;
   }
 
   if (t.isMilestone || t.type === 'milestone') {
-    return `    ${cleanName} :${prefix} ${id}, ${t.startDate}, 0d\n`;
+    return `    ${cleanName} :${prefix ? prefix + ' ' : ''}${id}, ${t.startDate}, 0d\n`;
   }
 
   return `    ${cleanName} :${prefix ? prefix + ' ' : ''}${id}, ${timeSpec}\n`;
