@@ -121,7 +121,20 @@ export async function saveRemoteProject(project: Project): Promise<{ success: bo
       body: JSON.stringify(project),
     });
     if (!res.ok) {
-      return { success: false, error: `Erro ${res.status} ao salvar projeto no servidor.` };
+      let detailMsg = '';
+      try {
+        const errJson = await res.json();
+        if (errJson && errJson.detail) {
+          if (Array.isArray(errJson.detail)) {
+            detailMsg = ': ' + errJson.detail.map((d: any) => `${d.loc ? d.loc.slice(-2).join('.') + ': ' : ''}${d.msg}`).join(', ');
+          } else if (typeof errJson.detail === 'string') {
+            detailMsg = ': ' + errJson.detail;
+          }
+        }
+      } catch {
+        // Ignora falha de parse
+      }
+      return { success: false, error: `Erro ${res.status} ao salvar projeto no servidor${detailMsg}.` };
     }
     return { success: true };
   } catch (err: any) {
@@ -137,7 +150,16 @@ export async function deleteRemoteProject(projectId: string): Promise<{ success:
       headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) {
-      return { success: false, error: `Erro ${res.status} ao excluir projeto.` };
+      let detailMsg = '';
+      try {
+        const errJson = await res.json();
+        if (errJson && errJson.detail) {
+          detailMsg = ': ' + (typeof errJson.detail === 'string' ? errJson.detail : JSON.stringify(errJson.detail));
+        }
+      } catch {
+        // Ignora falha de parse
+      }
+      return { success: false, error: `Erro ${res.status} ao excluir projeto${detailMsg}.` };
     }
     return { success: true };
   } catch (err: any) {

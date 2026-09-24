@@ -51,7 +51,7 @@ export const ExecutiveHeader: React.FC<ExecutiveHeaderProps> = ({
 
   // Storage Modal State
   const [isStorageOpen, setIsStorageOpen] = useState(false);
-  const [storageTab, setStorageTab] = useState<'windows' | 'cloud' | 'export'>('windows');
+  const [storageTab, setStorageTab] = useState<'windows' | 'cloud'>('windows');
 
   const handleSaveTitle = () => {
     updateProjectInfo({

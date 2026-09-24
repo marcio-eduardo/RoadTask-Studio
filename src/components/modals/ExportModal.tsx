@@ -46,6 +46,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadMermaid = () => {
+    const blob = new Blob([mermaidCode], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_gantt.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleDownloadJson = () => {
     const blob = new Blob([jsonCode], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -165,18 +175,29 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose }) => 
         <div className="p-6 overflow-y-auto flex-1">
           {activeTab === 'mermaid' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <p className="text-xs text-slate-400">
                   Código Mermaid pronto para GitHub, Notion, Documentação ou Apresentações:
                 </p>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(mermaidCode)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-safira-600 hover:bg-safira-500 text-white rounded-xl text-xs font-bold transition-all shadow-glow-safira"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copiado!' : 'Copiar Código'}</span>
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleDownloadMermaid}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-esmeralda-600 hover:bg-esmeralda-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    title="Baixar arquivo Markdown (.md) com o código Mermaid"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Baixar Mermaid (.md)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(mermaidCode)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-safira-600 hover:bg-safira-500 text-white rounded-xl text-xs font-bold transition-all shadow-glow-safira cursor-pointer"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? 'Copiado!' : 'Copiar Código'}</span>
+                  </button>
+                </div>
               </div>
 
               <pre className="bg-obsidian-950 border border-obsidian-800 rounded-2xl p-4 text-xs font-mono text-safira-300 overflow-x-auto max-h-56 scrollbar-thin">

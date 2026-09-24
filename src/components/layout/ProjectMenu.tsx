@@ -18,7 +18,7 @@ import { useGantt } from '../../context/GanttContext';
 interface ProjectMenuProps {
   onOpenBlueprints: () => void;
   onOpenExport: () => void;
-  onOpenStorage: (tab?: 'windows' | 'cloud' | 'export') => void;
+  onOpenStorage: (tab?: 'windows' | 'cloud') => void;
 }
 
 export const ProjectMenu: React.FC<ProjectMenuProps> = ({
@@ -188,7 +188,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
 
           {/* Grupo de Integrações & Exportação */}
           <div className="space-y-0.5">
-            {/* Sincronizar */}
+            {/* Nuvem */}
             <button
               type="button"
               onClick={() => {
@@ -199,7 +199,7 @@ export const ProjectMenu: React.FC<ProjectMenuProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <Cloud className="w-4 h-4 text-esmeralda-400 group-hover:text-esmeralda-300 transition-colors shrink-0" />
-                <span className="text-xs font-medium">Sincronizar</span>
+                <span className="text-xs font-medium">Nuvem</span>
               </div>
             </button>
 
