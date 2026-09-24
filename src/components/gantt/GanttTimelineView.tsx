@@ -16,7 +16,9 @@ import {
   MessageSquareText,
   Zap,
   CheckSquare,
+  Plus,
 } from 'lucide-react';
+import { EpicModal } from '../modals/EpicModal';
 
 interface GanttTimelineViewProps {
   onSelectTask?: (task: Task) => void;
@@ -45,7 +47,11 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
     resizeTaskDuration,
     updateTaskProgress,
     simulation,
+    addTask,
   } = useGantt();
+
+  const [isEpicModalOpen, setIsEpicModalOpen] = useState(false);
+  const [selectedEpicToEdit, setSelectedEpicToEdit] = useState<Task | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +84,7 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
   const phaseColWidth = 140; // Width of sticky left phase swimlane column
 
   // Group tasks by epic/phase and build displayTasks (excluding summary epic bars and sprints from timeline rows)
-  const { phaseSections, displayTasks, hasPhases } = useMemo(() => {
+  const { phaseSections, displayTasks } = useMemo(() => {
     const phases = project.tasks.filter(isEpic);
     const sections: PhaseSection[] = [];
     const flatDisplay: Task[] = [];
@@ -89,12 +95,12 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
         const children = project.tasks.filter(
           t => (t.phaseId === ph.id || t.epicId === ph.id) && !isEpic(t) && t.type !== 'sprint'
         );
-        if (children.length > 0) {
-          const rawName = ph.name;
-          const parts = rawName.split(':');
-          const shortName = parts[0].trim();
-          const subtitle = parts.length > 1 ? parts.slice(1).join(':').trim() : undefined;
+        const rawName = ph.name;
+        const parts = rawName.split(':');
+        const shortName = parts[0].trim();
+        const subtitle = parts.length > 1 ? parts.slice(1).join(':').trim() : (ph.notes || undefined);
 
+        if (children.length > 0) {
           sections.push({
             id: ph.id,
             name: ph.name,
@@ -110,6 +116,37 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
 
           flatDisplay.push(...children);
           currentIndex += children.length;
+        } else {
+          // Épico recém-criado ou sem histórias: Renderiza 1 linha de placeholder com botão '+ Adicionar História'
+          const emptyPlaceholderTask: Task = {
+            id: `empty_epic_${ph.id}`,
+            name: `+ Adicionar História em ${shortName}`,
+            type: 'story',
+            phaseId: ph.id,
+            epicId: ph.id,
+            startDate: ph.startDate || new Date().toISOString().split('T')[0],
+            duration: 1,
+            endDate: ph.startDate || new Date().toISOString().split('T')[0],
+            progress: 0,
+            dependencies: [],
+            color: ph.color,
+          };
+
+          sections.push({
+            id: ph.id,
+            name: ph.name,
+            shortName,
+            subtitle,
+            color: ph.color,
+            tasks: [emptyPlaceholderTask],
+            startIndex: currentIndex,
+            rowCount: 1,
+            topY: headerHeight + currentIndex * rowHeight,
+            height: rowHeight,
+          });
+
+          flatDisplay.push(emptyPlaceholderTask);
+          currentIndex += 1;
         }
       }
 
@@ -138,21 +175,23 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
       // No phases defined: flat list of all non-phase and non-sprint tasks
       const nonPhases = project.tasks.filter(t => t.type !== 'phase' && t.type !== 'sprint');
       const allTasks = nonPhases.length > 0 ? nonPhases : project.tasks.filter(t => t.type !== 'sprint');
-      sections.push({
-        id: 'sec_all',
-        name: 'Cronograma',
-        shortName: 'Cronograma',
-        color: '#0284C7',
-        tasks: allTasks,
-        startIndex: 0,
-        rowCount: allTasks.length,
-        topY: headerHeight,
-        height: allTasks.length * rowHeight,
-      });
-      flatDisplay.push(...allTasks);
+      if (allTasks.length > 0) {
+        sections.push({
+          id: 'sec_all',
+          name: 'Cronograma',
+          shortName: 'Cronograma',
+          color: '#0284C7',
+          tasks: allTasks,
+          startIndex: 0,
+          rowCount: allTasks.length,
+          topY: headerHeight,
+          height: allTasks.length * rowHeight,
+        });
+        flatDisplay.push(...allTasks);
+      }
     }
 
-    return { phaseSections: sections, displayTasks: flatDisplay, hasPhases: phases.length > 0 };
+    return { phaseSections: sections, displayTasks: flatDisplay };
   }, [project.tasks, headerHeight]);
 
   // Determine timeline date boundaries using all project tasks (including sprints)
@@ -333,90 +372,134 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
       >
         <div
           style={{
-            width: Math.max(totalWidth + (hasPhases ? phaseColWidth : 0), 1000),
+            width: Math.max(totalWidth + phaseColWidth, 1000),
             height: totalHeight,
           }}
           className="flex relative"
         >
-          {/* Left Sticky Phase Swimlane Column */}
-          {hasPhases && (
+          {/* Left Sticky Phase Swimlane Column (Sempre visível para organização estrutural do projeto) */}
+          <div
+            style={{ width: phaseColWidth }}
+            className="sticky left-0 z-30 shrink-0 bg-gantt-card/95 backdrop-blur-md border-r border-gantt-border flex flex-col shadow-lg transition-colors select-none"
+          >
+            {/* Sticky Top Header Cell for Phases (3-tier aligned) */}
             <div
-              style={{ width: phaseColWidth }}
-              className="sticky left-0 z-30 shrink-0 bg-gantt-card/95 backdrop-blur-md border-r border-gantt-border flex flex-col shadow-lg transition-colors"
+              style={{ height: headerHeight }}
+              className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex flex-col justify-between p-2.5 transition-colors select-none"
             >
-              {/* Sticky Top Header Cell for Phases (3-tier aligned) */}
-              <div
-                style={{ height: headerHeight }}
-                className="sticky top-0 z-40 bg-gantt-header border-b border-gantt-border flex flex-col justify-between p-2.5 transition-colors select-none"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-gantt-text-secondary">
-                    Cronograma
-                  </span>
-                  <span className="text-[9px] text-gantt-text-muted font-semibold">
-                    Ágil
-                  </span>
-                </div>
-
-                {sprints.length > 0 && (
-                  <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded bg-purple-950/40 border border-purple-500/30 text-purple-300">
-                    <Zap className="w-3 h-3 text-purple-400 shrink-0" />
-                    <span className="text-[9.5px] font-black uppercase tracking-wider truncate">
-                      {sprints.length} {sprints.length === 1 ? 'Sprint' : 'Sprints'}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-[10.5px] font-black uppercase tracking-wider text-gantt-text-primary">
-                    Épicos
-                  </span>
-                  <span className="text-[9px] text-gantt-text-muted font-semibold">
-                    Swimlanes
-                  </span>
-                </div>
+              <div className="flex items-center justify-between w-full">
+                <span className="text-[10px] font-black uppercase tracking-wider text-gantt-text-secondary">
+                  Cronograma
+                </span>
+                <span className="text-[9px] text-gantt-text-muted font-semibold">
+                  Ágil
+                </span>
               </div>
 
-              {/* Section Swimlane Cells */}
-              {phaseSections.map(sec => (
-                <div
-                  key={sec.id}
-                  style={{
-                    height: sec.height,
-                    background: sec.color
-                      ? `linear-gradient(90deg, ${sec.color}15 0%, transparent 100%)`
-                      : undefined,
-                  }}
-                  title={sec.subtitle ? `${sec.name} - ${sec.subtitle}` : sec.name}
-                  className="border-b border-gantt-border flex flex-col items-center justify-center px-2.5 text-center relative select-none overflow-hidden transition-colors"
-                >
-                  {/* Left accent bar with section color */}
-                  <div
-                    className="absolute left-0 top-1.5 bottom-1.5 w-1.5 rounded-r shadow-xs"
-                    style={{ backgroundColor: sec.color || 'var(--gantt-phase-1-accent)' }}
-                  />
-                  <span className="text-xs font-black text-gantt-text-primary uppercase tracking-wider truncate max-w-full">
-                    {sec.shortName}
-                  </span>
-                  {sec.height >= 72 && sec.subtitle && (
-                    <span className="text-[10px] text-gantt-text-secondary mt-0.5 line-clamp-2 leading-tight">
-                      {sec.subtitle}
-                    </span>
-                  )}
-                  <span
-                    className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded-md border shrink-0 transition-colors"
-                    style={{
-                      backgroundColor: sec.color ? `${sec.color}18` : 'rgba(8, 145, 178, 0.12)',
-                      borderColor: sec.color ? `${sec.color}35` : 'rgba(8, 145, 178, 0.25)',
-                      color: sec.color || 'var(--gantt-accent-focus)',
-                    }}
-                  >
-                    {sec.rowCount} {sec.rowCount === 1 ? 'item' : 'itens'}
+              {sprints.length > 0 && (
+                <div className="flex items-center justify-center gap-1.5 px-2 py-0.5 rounded bg-purple-950/40 border border-purple-500/30 text-purple-300">
+                  <Zap className="w-3 h-3 text-purple-400 shrink-0" />
+                  <span className="text-[9.5px] font-black uppercase tracking-wider truncate">
+                    {sprints.length} {sprints.length === 1 ? 'Sprint' : 'Sprints'}
                   </span>
                 </div>
-              ))}
+              )}
+
+              <div className="flex items-center justify-between w-full">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-gantt-text-primary">
+                  Épicos
+                </span>
+                <button
+                  id="btn-novo-epico"
+                  type="button"
+                  onClick={() => {
+                    setSelectedEpicToEdit(null);
+                    setIsEpicModalOpen(true);
+                  }}
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-safira-600/20 hover:bg-safira-600 text-safira-400 hover:text-white border border-safira-500/30 text-[10px] font-bold transition-all cursor-pointer shadow-xs"
+                  title="Criar Novo Épico (Swimlane)"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Novo</span>
+                </button>
+              </div>
             </div>
-          )}
+
+            {/* Empty State when project has no Epics yet */}
+            {phaseSections.length === 0 ? (
+              <div className="p-2 flex-1 flex flex-col items-center justify-start pt-4">
+                <button
+                  id="btn-criar-primeiro-epico"
+                  type="button"
+                  onClick={() => {
+                    setSelectedEpicToEdit(null);
+                    setIsEpicModalOpen(true);
+                  }}
+                  className="w-full p-3 rounded-2xl border-2 border-dashed border-safira-500/40 hover:border-safira-500 bg-safira-500/5 hover:bg-safira-500/10 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+                  title="Clique para criar seu primeiro Épico e estruturar o cronograma"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-safira-500/20 text-safira-400 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform shadow-xs">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <span className="text-[11px] font-bold text-safira-400 group-hover:text-safira-300">
+                    + Criar Épico
+                  </span>
+                  <span className="text-[9px] text-slate-400 mt-0.5 leading-tight">
+                    Agrupar histórias em Swimlanes
+                  </span>
+                </button>
+              </div>
+            ) : (
+              /* Section Swimlane Cells */
+              phaseSections.map(sec => {
+                const isEmpty = sec.tasks.some(t => t.id.startsWith('empty_epic_'));
+                return (
+                  <div
+                    key={sec.id}
+                    onClick={() => {
+                      const foundEpic = project.tasks.find(t => t.id === sec.id && isEpic(t));
+                      if (foundEpic) {
+                        setSelectedEpicToEdit(foundEpic);
+                        setIsEpicModalOpen(true);
+                      }
+                    }}
+                    style={{
+                      height: sec.height,
+                      background: sec.color
+                        ? `linear-gradient(90deg, ${sec.color}18 0%, transparent 100%)`
+                        : undefined,
+                    }}
+                    title={sec.subtitle ? `${sec.name} - ${sec.subtitle} (Clique para editar)` : `${sec.name} (Clique para editar)`}
+                    className="border-b border-gantt-border flex flex-col items-center justify-center px-2 text-center relative select-none overflow-hidden transition-all cursor-pointer hover:bg-gantt-card-hover group"
+                  >
+                    {/* Left accent bar with section color */}
+                    <div
+                      className="absolute left-0 top-1.5 bottom-1.5 w-1.5 rounded-r shadow-xs group-hover:w-2.5 transition-all"
+                      style={{ backgroundColor: sec.color || 'var(--gantt-phase-1-accent)' }}
+                    />
+                    <span className="text-xs font-black text-gantt-text-primary uppercase tracking-wider truncate max-w-full group-hover:text-safira-400 transition-colors">
+                      {sec.shortName}
+                    </span>
+                    {sec.height >= 60 && sec.subtitle && (
+                      <span className="text-[10px] text-gantt-text-secondary mt-0.5 line-clamp-2 leading-tight">
+                        {sec.subtitle}
+                      </span>
+                    )}
+                    <span
+                      className="text-[9px] font-bold mt-1 px-2 py-0.5 rounded-md border shrink-0 transition-colors"
+                      style={{
+                        backgroundColor: sec.color ? `${sec.color}18` : 'rgba(8, 145, 178, 0.12)',
+                        borderColor: sec.color ? `${sec.color}35` : 'rgba(8, 145, 178, 0.25)',
+                        color: sec.color || 'var(--gantt-accent-focus)',
+                      }}
+                    >
+                      {isEmpty ? '0 itens' : `${sec.rowCount} ${sec.rowCount === 1 ? 'item' : 'itens'}`}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </div>
 
           {/* Right Timeline Canvas (Dates, Grid, Dependency Curves & Task Bars) */}
           <div
@@ -786,6 +869,50 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
                 const latestUpdate = task.updates && task.updates.length > 0 ? task.updates[0].text : task.lastUpdateNote || task.notes;
                 const hasUpdates = (task.updates && task.updates.length > 0) || !!task.lastUpdateNote;
 
+                // Linha de placeholder para Épico vazio (permite adicionar primeira história com 1 clique)
+                if (task.id.startsWith('empty_epic_')) {
+                  const epicId = task.epicId || task.phaseId;
+                  return (
+                    <div
+                      key={task.id}
+                      style={{ height: rowHeight, top: topY }}
+                      className={`absolute left-0 right-0 flex items-center px-4 transition-colors ${
+                        idx % 2 === 0 ? 'bg-transparent' : 'bg-gantt-card/40'
+                      }`}
+                    >
+                      <button
+                        id={`btn-add-story-${epicId}`}
+                        type="button"
+                        onClick={e => {
+                          e.stopPropagation();
+                          const newTaskId = `task_${Date.now()}`;
+                          const today = task.startDate || new Date().toISOString().split('T')[0];
+                          const newTask: Task = {
+                            id: newTaskId,
+                            name: 'Nova História',
+                            type: 'story',
+                            epicId: epicId,
+                            phaseId: epicId,
+                            startDate: today,
+                            endDate: today,
+                            duration: 5,
+                            progress: 0,
+                            dependencies: [],
+                            color: task.color,
+                          };
+                          addTask(newTask);
+                          setSelectedTaskId(newTaskId);
+                          if (onSelectTask) onSelectTask(newTask);
+                        }}
+                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-dashed border-safira-500/50 hover:border-safira-400 bg-safira-500/10 hover:bg-safira-500/20 text-safira-400 hover:text-safira-300 text-xs font-semibold transition-all cursor-pointer shadow-xs group"
+                      >
+                        <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                        <span>{task.name}</span>
+                      </button>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={task.id}
@@ -1129,6 +1256,16 @@ export const GanttTimelineView: React.FC<GanttTimelineViewProps> = ({ onSelectTa
           </div>
         </div>
       </div>
+
+      {/* Modal de Criação / Edição de Épico */}
+      <EpicModal
+        isOpen={isEpicModalOpen}
+        onClose={() => {
+          setIsEpicModalOpen(false);
+          setSelectedEpicToEdit(null);
+        }}
+        epic={selectedEpicToEdit}
+      />
     </div>
   );
 };

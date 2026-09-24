@@ -16,6 +16,7 @@ import {
   Check,
 } from 'lucide-react';
 import { GuidedTarget } from '../guided/GuidedTooltip';
+import { EpicModal } from '../modals/EpicModal';
 
 interface EntityMeta {
   type: EntityType;
@@ -87,6 +88,7 @@ export const TapAndBuildToolbar: React.FC = () => {
   const [autoChain, setAutoChain] = useState(true);
   const [selectedPhaseId, setSelectedPhaseId] = useState<string>('');
   const [isPresetOpen, setIsPresetOpen] = useState(false);
+  const [isEpicModalOpen, setIsEpicModalOpen] = useState(false);
   const presetRef = useRef<HTMLDivElement>(null);
 
   // Close menus on outside click
@@ -174,25 +176,26 @@ export const TapAndBuildToolbar: React.FC = () => {
       finalDuration = 0;
     }
 
+    const isEpicType = entityType === 'epic' || entityType === 'phase';
     addTask(
       {
         name: finalName,
         type: entityType,
-        phaseId: selectedPhaseId || undefined,
-        epicId: selectedPhaseId || undefined,
+        phaseId: isEpicType ? undefined : (selectedPhaseId || undefined),
+        epicId: isEpicType ? undefined : (selectedPhaseId || undefined),
         duration: finalDuration,
         progress: 0,
         isMilestone: entityType === 'milestone',
         color:
-          entityType === 'epic' || entityType === 'phase'
-            ? '#0284C7'
+          isEpicType
+            ? '#6366F1'
             : entityType === 'sprint'
             ? '#0EA5E9'
             : entityType === 'milestone'
             ? '#FBBF24'
             : '#10B981',
       },
-      autoChain
+      isEpicType ? false : autoChain
     );
 
     setTaskName('');
@@ -298,12 +301,18 @@ export const TapAndBuildToolbar: React.FC = () => {
             )}
           </div>
 
-          {/* 3. Epic Selector (only if epics exist and type is not an epic) */}
-          {availableEpics.length > 0 && entityType !== 'epic' && entityType !== 'phase' && (
-            <div className="relative shrink-0 w-36 sm:w-44">
+          {/* 3. Epic Selector / Creator (only when type is NOT epic/phase) */}
+          {entityType !== 'epic' && entityType !== 'phase' && (
+            <div className="relative shrink-0 w-36 sm:w-48">
               <select
                 value={selectedPhaseId}
-                onChange={e => setSelectedPhaseId(e.target.value)}
+                onChange={e => {
+                  if (e.target.value === '__new_epic__') {
+                    setIsEpicModalOpen(true);
+                  } else {
+                    setSelectedPhaseId(e.target.value);
+                  }
+                }}
                 className="w-full bg-gantt-canvas border border-gantt-border text-gantt-primary rounded-xl px-2.5 py-2 text-xs appearance-none focus:outline-none focus:border-safira-500/60 pr-7 cursor-pointer truncate min-h-[38px]"
                 title="Agrupar dentro de um Épico"
               >
@@ -313,9 +322,25 @@ export const TapAndBuildToolbar: React.FC = () => {
                     📁 {p.name}
                   </option>
                 ))}
+                <option value="__new_epic__" className="text-safira-500 font-bold">
+                  ✨ + Criar Novo Épico...
+                </option>
               </select>
               <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
+          )}
+
+          {/* 3B. Customize Epic Button (when type IS epic/phase) */}
+          {(entityType === 'epic' || entityType === 'phase') && (
+            <button
+              type="button"
+              onClick={() => setIsEpicModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-safira-600/20 hover:bg-safira-600 text-safira-400 hover:text-white border border-safira-500/30 text-xs font-bold transition-all cursor-pointer shrink-0 min-h-[38px] shadow-xs"
+              title="Abrir editor completo do Épico para escolher cores e prazos"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Personalizar Épico</span>
+            </button>
           )}
 
           {/* 4. Duration Controls (Stepper + Quick Presets Dropdown) */}
@@ -444,6 +469,12 @@ export const TapAndBuildToolbar: React.FC = () => {
           </button>
         </form>
       </div>
+
+      <EpicModal
+        isOpen={isEpicModalOpen}
+        onClose={() => setIsEpicModalOpen(false)}
+        onSuccess={newId => setSelectedPhaseId(newId)}
+      />
     </div>
   );
 };

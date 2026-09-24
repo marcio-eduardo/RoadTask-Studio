@@ -22,6 +22,7 @@ import {
   ChevronUp,
   Check,
 } from 'lucide-react';
+import { EpicModal } from './EpicModal';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -36,6 +37,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
   const [name, setName] = useState('');
   const [type, setType] = useState<EntityType>('story');
   const [phaseId, setPhaseId] = useState<string>('');
+  const [isEpicModalOpen, setIsEpicModalOpen] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [duration, setDuration] = useState(5);
   const [progress, setProgress] = useState(0);
@@ -387,7 +389,13 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
               </label>
               <select
                 value={phaseId}
-                onChange={e => setPhaseId(e.target.value)}
+                onChange={e => {
+                  if (e.target.value === '__new_epic__') {
+                    setIsEpicModalOpen(true);
+                  } else {
+                    setPhaseId(e.target.value);
+                  }
+                }}
                 className="w-full bg-gantt-card border border-gantt-border rounded-xl px-2 py-1.5 text-xs text-gantt-primary focus:outline-none focus:border-safira-500 truncate"
               >
                 <option value="">Nenhum Épico</option>
@@ -396,6 +404,9 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
                     {p.name}
                   </option>
                 ))}
+                <option value="__new_epic__" className="text-safira-500 font-bold">
+                  ✨ + Criar Novo Épico...
+                </option>
               </select>
             </div>
           </div>
@@ -735,6 +746,13 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ task, isOpen, onClose })
           </div>
         </div>
       </div>
+
+      {/* Modal para criar novo Épico diretamente da edição de tarefa */}
+      <EpicModal
+        isOpen={isEpicModalOpen}
+        onClose={() => setIsEpicModalOpen(false)}
+        onSuccess={newEpicId => setPhaseId(newEpicId)}
+      />
     </div>
   );
 };

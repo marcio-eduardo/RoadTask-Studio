@@ -51,6 +51,7 @@ interface GanttContextType {
   addTask: (task: Partial<Task>, autoChainWithPrevious?: boolean) => void;
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   deleteTask: (taskId: string) => void;
+  deleteEpic: (epicId: string, deleteChildren?: boolean) => void;
   moveTaskDate: (taskId: string, newStartDate: string) => void;
   resizeTaskDuration: (taskId: string, newDuration: number) => void;
   updateTaskProgress: (taskId: string, progress: number) => void;
@@ -452,16 +453,58 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const deleteTask = useCallback((taskId: string) => {
     pushHistory(project);
     setProject(prev => {
-      // Remove task and any dependencies targeting it
+      // Remove task and any dependencies targeting it, and unbind phaseId/epicId if this task was an epic
       const filtered = prev.tasks
         .filter(t => t.id !== taskId)
         .map(t => ({
           ...t,
+          phaseId: t.phaseId === taskId ? undefined : t.phaseId,
+          epicId: t.epicId === taskId ? undefined : t.epicId,
           dependencies: t.dependencies.filter(d => d.targetTaskId !== taskId),
         }));
       return recomputeProject({ ...prev, tasks: filtered });
     });
     if (selectedTaskId === taskId) {
+      setSelectedTaskId(null);
+    }
+  }, [project, pushHistory, recomputeProject, selectedTaskId]);
+
+  const deleteEpic = useCallback((epicId: string, deleteChildren = false) => {
+    pushHistory(project);
+    setProject(prev => {
+      let remainingTasks: Task[];
+      if (deleteChildren) {
+        // Remove epic and all child tasks belonging to it
+        remainingTasks = prev.tasks.filter(
+          t => t.id !== epicId && t.phaseId !== epicId && t.epicId !== epicId
+        );
+      } else {
+        // Remove only the epic, unbinding child tasks so they safely become unassigned
+        remainingTasks = prev.tasks
+          .filter(t => t.id !== epicId)
+          .map(t => {
+            if (t.phaseId === epicId || t.epicId === epicId) {
+              return {
+                ...t,
+                phaseId: undefined,
+                epicId: undefined,
+              };
+            }
+            return t;
+          });
+      }
+
+      // Clean up dependencies targeting any removed tasks
+      const remainingIds = new Set(remainingTasks.map(t => t.id));
+      const cleaned = remainingTasks.map(t => ({
+        ...t,
+        dependencies: t.dependencies.filter(d => remainingIds.has(d.targetTaskId)),
+      }));
+
+      return recomputeProject({ ...prev, tasks: cleaned });
+    });
+
+    if (selectedTaskId === epicId) {
       setSelectedTaskId(null);
     }
   }, [project, pushHistory, recomputeProject, selectedTaskId]);
@@ -677,6 +720,7 @@ export const GanttProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addTask,
         updateTask,
         deleteTask,
+        deleteEpic,
         moveTaskDate,
         resizeTaskDuration,
         updateTaskProgress,
