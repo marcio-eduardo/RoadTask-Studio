@@ -1,183 +1,263 @@
 # RoadTask Studio
 
-> **Executive Timeline & Gantt Engine**  
-> *Projete roadmaps em segundos, simule impactos ao vivo, sincronize na nuvem ou salve nativamente no Windows.*
+<div align="center">
+
+![RoadTask Studio](https://img.shields.io/badge/RoadTask%20Studio-Executive%20Timeline-0284c7?style=for-the-badge&logo=codewars&logoColor=white)
+![React 18](https://img.shields.io/badge/React-18.3-61dafb?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178c6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%203.4-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Offline First](https://img.shields.io/badge/SingleFile-468%20kB%20Standalone-10b981?style=for-the-badge&logo=html5&logoColor=white)
+
+**Executive Timeline & Gantt Engine**  
+*Projete cronogramas ágeis em segundos, simule impactos ao vivo, exporte para Mermaid, SVG ou PDF A4 executivo, sincronize na nuvem ou salve nativamente no Windows com um único atalho (Ctrl+S).*
+
+</div>
 
 ---
 
 ## 🌟 Visão Geral
 
-O **RoadTask Studio** é um estúdio de engenharia e gestão de projetos projetado para arquitetos de soluções, engenheiros de software e gestores técnicos. Desenvolvido com foco em **agilidade, touch-first e alta fidelidade visual**, ele transforma a criação de cronogramas e roadmaps executivos em uma experiência fluida e moderna.
+O **RoadTask Studio** é um estúdio visual de modelagem de cronogramas, roadmaps e diagramas de Gantt voltado para arquitetos de soluções, engenheiros de software, gerentes de produto e diretores técnicos. 
 
-O sistema opera no modelo **Offline-First**, podendo ser utilizado como um único arquivo autônomo de **~360 KB** (`editor_cronograma.html`) sem necessidade de conexão com a internet, ou conectado a um ecossistema completo de **persistência híbrida** (salvamento nativo no Windows via File System Access API ou sincronização na nuvem com backend Python FastAPI e NoSQL).
+Ele une **rigor matemático de engenharia** (cálculo real de dias úteis, exclusão de feriados brasileiros, Critical Path Method - CPM, detecção de loops em dependências) com **impacto visual de nível executivo** e **usabilidade touch-first para tablets e smartphones (Zero Código / Zero Sintaxe)**.
 
----
-
-## 🚀 Principais Diferenciais
-
-### 📊 1. Layout Executivo com Raias de Fases (Swimlanes)
-- **Raias Verticais de Fases:** Coluna fixa à esquerda destacando claramente as fases (`Fase 1`, `Fase 2`, `Marcos`) e agrupando as atividades em blocos lógicos.
-- **Faixas Sombreadas Alternadas:** Shading suave nas raias para facilitar o rastreamento visual horizontal.
-- **Rótulos Inteligentes e Adaptativos:** Tarefas de curta duração (ex.: *Brainstorm 2d*) exibem o nome externamente à direita da barra, evitando sobreposição e cortes de texto; tarefas mais longas exibem o título internamente.
-- **Linha de Referência Temporal:** Marcador vertical vermelho indicando a data de corte/início do cronograma integrado.
-
-### 💾 2. Persistência Híbrida Inteligente
-- **Salvamento Direto no Windows (`File System Access API`):**
-  - Salva arquivos nativos `.roadtask.json` diretamente na pasta de sua escolha no Windows.
-  - Suporte ao atalho universal **`Ctrl+S`**: edite e salve instantaneamente no mesmo arquivo em disco, sem download repetido e sem caixas de diálogo adicionais.
-  - Indicador de status do arquivo vinculado no cabeçalho executivo com opção de desvincular em 1 clique.
-- **Backend Python FastAPI + Supabase (PostgreSQL JSONB):**
-  - Armazenamento em coluna `data JSONB` no Supabase com generosos 1.5 GB gratuitos e excelente desempenho.
-  - Fallback automático inteligente: se o Supabase não estiver configurado, a API grava e lê automaticamente de `backend/data/projects.json`.
-  - Containerização pronta com **Docker & Docker Compose**.
-- **Deploy Serverless no Vercel:**
-  - Adaptador `api/index.py` pronto para o Vercel Python Runtime conectado diretamente ao Supabase.
-
-### 🖐️ 3. Construtor Visual Tátil ("Tap-and-Build")
-- **Zero Sintaxe / Zero Código:** Sem fórmulas manuais ou digitação repetitiva.
-- **Entidades com 1 Toque:** `Fase/Épico`, `Sprint`, `Story/Tarefa` e `Marco (Milestone)`.
-- **Auto-Sugestão Inteligente:** Sugere sequências de sprints (`Sprint 1`, `Sprint 2`...) e marcos estratégicos (`Go-Live`, `Homologação`, `Aceite`).
-- **Chips de Duração Rápida:** Botões ergonômicos (`+1d`, `+3d`, `+5d`, `+10d`, `+20d` e steppers `[-]` / `[+]`).
-- **Auto-Encadeamento:** Botão `[🔗 Encadeia com Anterior]` liga a nova tarefa ao término da anterior (relação Término-Início / FS) instantaneamente.
-
-### 🧮 4. Motor Matemático Rigoroso
-- **Calendário de Dias Úteis:** Exclusão automática de finais de semana com cálculo dinâmico de feriados nacionais brasileiros (fixos e móveis como Carnaval, Páscoa e Corpus Christi).
-- **Propagação em Cascata (FS, SS, FF):** Recálculo instantâneo de prazos com validação topológica contra ciclos de dependência.
-- **Caminho Crítico (CPM):** Algoritmo Critical Path Method que calcula a folga total (*Total Float*) e destaca atividades críticas em carmim neon.
-
-### 🎭 5. Modo Pitch C-Level ("Sala de Guerra")
-- **1 Toque para Tela Cheia:** Oculta controles de edição para projeção limpa em reuniões com diretorias e clientes.
-- **Scorecards Executivos (KPIs):**
-  - **Go-Live Previsto** com indicador de folga ou atraso.
-  - **Duração Total** em dias úteis reais.
-  - **Progresso Global (%)** ponderado.
-  - **Gargalos no Caminho Crítico** (alertas de tarefas sem folga).
-  - **Marcos Estratégicos** destacados em diamante dourado.
-
-### 🔮 6. Simulador "What-If" em Tempo Real
-- Simule atrasos ou adiantamentos arrastando qualquer barra no gráfico:
-  - Renderiza a **Linha de Base Original (Baseline)** pontilhada para comparação.
-  - Exibe o impacto líquido no Go-Live em tempo real (`Ex: ⚠️ Impacto no Go-Live: +10 dias úteis`).
-  - Suporte completo a **Desfazer/Refazer (Undo/Redo)**.
-
-### 📱 7. Múltiplos Modos de Visualização
-1. **Gantt Timeline:** Linha do tempo vetorial SVG com rolagem suave, raias de fases, curvas Bézier e arraste interativo.
-2. **Task Deck (Cards Mobile):** Cartões táteis com slider de progresso ao alcance do polegar para smartphones.
-3. **WBS Tabela:** Visão hierárquica tabular detalhada.
-4. **Split Screen:** Visualização dividida lado a lado (Tabela + Gráfico Gantt).
-
-### 🔄 8. Interoperabilidade & Exportações
-- **Mermaid.js Bidirecional:** Exporta código Mermaid com 1 clique para colar no Notion/GitHub e importa código Mermaid existente para renderização imediata.
-- **JSON Completo:** Backup, compartilhamento e restauração de projetos.
-- **Impressão / PDF A4:** Estilos de impressão `@media print` otimizados para modo paisagem (Landscape).
+A aplicação adota a arquitetura **Offline-First**:
+- **Executável Único Autônomo (`editor_cronograma.html`):** Um arquivo `.html` único de ~468 kB que roda 100% offline em qualquer navegador moderno, sem dependências ou instalação prévia.
+- **Persistência Híbrida:** Salva diretamente na pasta local do Windows via *File System Access API* (`Ctrl+S`) ou sincroniza na nuvem com backend *Python FastAPI* e *PostgreSQL JSONB (Supabase)*.
 
 ---
 
-## 💻 Como Utilizar
+## ⚡ Início Rápido (< 2 minutos)
 
-### Modo 1: Executável Standalone Offline (Sem Instalação)
-Basta abrir diretamente com duplo clique no navegador:
+### Opção 1: Executável Autônomo Offline (Zero Instalação)
+Basta abrir o arquivo com um duplo-clique no seu navegador favorito (Chrome, Edge, Safari, Firefox):
 ```
 editor_cronograma.html
 ```
-*(Funciona 100% offline em Chrome, Edge, Safari, Firefox, tablets e smartphones).*
+*Funciona imediatamente sem internet, ideal para apresentações e clientes.*
 
 ---
 
-### Modo 2: Ambiente de Desenvolvimento (Frontend)
+### Opção 2: Ambiente de Desenvolvimento (Frontend)
+
+Requisitos: Node.js 18+ instalado.
 
 ```powershell
-# 1. Instalar as dependências do frontend
-npm install
+# 1. Instalar dependências
+npm.cmd install
 
 # 2. Iniciar o servidor de desenvolvimento Vite
-npm run dev
+npm.cmd run dev
 
-# 3. Gerar novo executável único standalone atualizado
-npm run build
+# 3. Compilar TypeScript e gerar novo bundle autônomo (dist/index.html)
+npm.cmd run build
 ```
+O servidor de desenvolvimento estará disponível em: `http://localhost:5173/`
 
 ---
 
-### Modo 3: Backend Python & Docker (Opcional)
+### Opção 3: Backend Python & Persistência em Nuvem (Opcional)
 
-Para rodar a API localmente com Docker:
+Requisitos: Docker ou Python 3.11+.
 
 ```powershell
-# Iniciar o backend FastAPI
+# Iniciar via Docker Compose
 docker compose up -d
+
+# Ou iniciar manualmente via Python
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
 ```
 - **API FastAPI:** `http://localhost:8000`
-- **Documentação Swagger Interativa:** `http://localhost:8000/docs`
-
-*(Para executar sem Docker, basta entrar na pasta `backend`, executar `pip install -r requirements.txt` e iniciar com `uvicorn backend.main:app --reload --port 8000`).*
+- **Swagger / OpenAPI:** `http://localhost:8000/docs`
 
 ---
 
-## 🏗️ Estrutura do Projeto
+## 🚀 Principais Módulos & Recursos
+
+### 🎯 1. Arquitetura Scrum Oficial (Scrum Guide 2020)
+- **Épicos como Swimlanes:** Coluna fixa à esquerda agrupando histórias e marcos em raias horizontais contínuas.
+  - **Épicos Vazios com 0 Histórias:** Renderizados imediatamente com o badge `0 itens` e um botão placeholder interativo `+ Adicionar História em {nome}` para criar a primeira história diretamente na raia com 1 clique.
+  - **Modal Dedicado de Épicos (`EpicModal`):** Permite configurar Nome, Subtítulo/Objetivo Estratégico, paleta cromática de 7 cores executivas (Índigo, Safira, Esmeralda, Âmbar, Violeta, Carmim, Ciano), datas e prazos.
+  - **Exclusão Segura em 2 Etapas:** Painel inline de confirmação sem popups nativos bloqueáveis, com opção de desvincular histórias filhas ou excluí-las em cascata.
+- **Linha do Tempo de Sprints no Cabeçalho:**
+  - *Camada 1 (Superior):* Barra de Meses com rastreamento suave da data atual (`HOJE`).
+  - *Camada 2 (Intermediária):* Linha de Sprints posicionada horizontalmente sobre os dias correspondentes (`Sprint 0`, `Sprint 1`, etc.), com barra de progresso alimentada pelo avanço das histórias filhas e abertura do drawer de Sprint com 1 clique.
+  - *Camada 3 (Inferior):* Régua diária com numeração e dias da semana.
+- **Histórias de Usuário vs. Tarefas Técnicas dos Desenvolvedores (`subtasks`):**
+  - As histórias são as unidades de valor exibidas na timeline.
+  - O duplo-clique na barra da história abre o painel ágil com a lista interativa de tarefas técnicas dos desenvolvedores, permitindo concluir (`[x]`), reabrir, adiar (+1d/+2d) e recalcular o progresso de 0% a 100% em tempo real.
+- **Scrum View & Geração de Diagramas SVG:**
+  - Alternância entre **Modo Cards Ágeis** (Sprint Backlog + Product Backlog por Épicos) e **Modo Diagrama SVG** em tela cheia com geração vetorial automática (`scrumSvgEngine.ts`) e botão de download vetorial com 1 clique.
+
+---
+
+### 🖐️ 2. Construtor Visual Tátil ("Tap-and-Build")
+- **Barra Executiva em Linha Única:** Sem poluição visual, alinhada à esquerda com comandos agrupados.
+- **Entidades com 1 Toque:** Seletor intuitivo de `Épico`, `Sprint`, `Story` e `Marco (Milestone)`.
+- **Predefinições Rápidas de Duração:** Chips táteis (`1d`, `3d`, `1 sem`, `2 sem`, `1 mês`) e controle por steppers numéricos.
+- **Unidades Temporais Flexíveis:** Suporte nativo a *Horas*, *Dias*, *Semanas* e *Meses*.
+- **Auto-Encadeamento:** Botão `[ 🔗 Encadear ]` que conecta automaticamente o início da nova tarefa ao término da atividade anterior (relação Término-Início / FS).
+
+---
+
+### 🧮 3. Motor Matemático de Engenharia
+- **Calendário com Feriados Nacionais Brasileiros:** Cálculo preciso de dias úteis reais, desconsiderando finais de semana e feriados nacionais fixos e móveis (Carnaval, Sexta-feira Santa, Páscoa, Corpus Christi, etc.).
+- **Ordenação Topológica & Prevenção de Ciclos:** Algoritmo que detecta referências circulares em tempo real antes de criar qualquer dependência.
+- **Caminho Crítico (CPM):** Calcula datas mais cedo (*Early Start/Finish*), datas mais tarde (*Late Start/Finish*) e a Folga Total (*Total Float*), sinalizando visualmente as tarefas sem folga.
+
+---
+
+### 📋 4. Gestão Operacional & Diário de Bordo da Atividade (`TaskDrawer`)
+- **Tela Única sem Abas Burocráticas:** Edição direta de título, situação, datas e responsável.
+- **Situação Operacional:** Chips táteis para *Não Iniciada*, *Em Andamento*, *Em Revisão*, *Concluída*, *Bloqueada* e *Pausada*.
+- **Semáforo RAG Executivo:** Indicador de saúde visual (🟢 *No Prazo*, 🟡 *Em Risco*, 🔴 *Atrasada*, 🟣 *Bloqueada*).
+- **Diário de Bordo & Ocorrências:** Acordeão colapsado por padrão para registrar apontamentos cronológicos da tarefa, acompanhado de chips rápidos de 1 toque (`+ Alinhado em reunião`, `+ Criado API`, etc.).
+
+---
+
+### 🎨 5. Design System Dual & Paleta Low-Glare
+- **Modo Escuro ("Obsidiana & Ciano Cirúrgico"):** Fundo obsidiana puro (`#090a0d`), cartões em grafite módulo (`#12151d`), conectores em ciano e indicador de data atual em rubro.
+- **Modo Claro ("Suíço Monocromo & Cimento Polido / Ônix"):** Estética arquitetural Low-Glare em cimento escovado (`#eaedf1`), superfícies em placas de cimento polido (`#f6f8fa`), juntas em aço escovado (`#d1d7de`) e tipografia em preto ônix de alto contraste (`#0f141c`), eliminando reflexos cansativos.
+- **Fonte Única da Verdade:** Cores e bordas centralizadas dinamicamente no `tailwind.config.js` via plugin nativo `addBase`, garantindo sincronia perfeita com as variáveis CSS `--gantt-*`.
+- **Identidade Visual RoadTask:** Insígnia vetorial com 3 barras escalonadas e animação sequencial em cascata de pulso de luz (`RoadTaskLogo`).
+
+---
+
+### 📄 6. Relatório Executivo Oficial em PDF A4 Paisagem
+- **Componente `.print-only` Dedicado (`ExecutivePrintReport`):** Renderizado exclusivamente ao acionar a impressão ou exportação para PDF.
+- **Layout A4 Paisagem (Landscape):**
+  - Cabeçalho corporativo com metadados do projeto, cliente e data de emissão.
+  - 5 scorecards executivos de KPIs (Go-Live Previsto, Duração Total, Progresso Ponderado, Total de Histórias/Marcos e Gargalos no Caminho Crítico).
+  - Roadmap visual proporcional formatado para a largura da página sem barras de rolagem.
+  - Tabela EAP/WBS hierárquica completa com quebras de página limpas (`break-inside: avoid`).
+  - Quadro de Marcos Estratégicos com campos formais de assinatura/aprovação de patrocinadores.
+
+---
+
+### 💾 7. Persistência Híbrida & Nuvem
+- **Salvamento Direto no Windows (`File System Access API`):**
+  - Grava arquivos `.roadtask.json` diretamente no diretório escolhido pelo usuário.
+  - Atalho universal **`Ctrl+S`** salva instantaneamente no arquivo vinculado em disco sem abrir telas de download.
+- **Nuvem (FastAPI + Supabase):**
+  - Armazenamento flexível em PostgreSQL JSONB com resiliência total contra variações de schema (`model_config = ConfigDict(extra='allow')`).
+  - Modal reformulado em duas abas objetivas: **"Pasta Local"** e **"Nuvem"**, com opções explícitas de **Salvar**, **Carregar** e **Excluir** projetos remotos.
+
+---
+
+### 🔄 8. Interoperabilidade & Exportações
+| Formato | Descrição |
+|---|---|
+| **Mermaid (.md / .mmd)** | Download direto com 1 clique de arquivo Mermaid pronto para GitHub, Notion ou Obsidian. |
+| **SVG Puro** | Exportação vetorial do Diagrama Arquitetural Scrum de alta resolução. |
+| **PDF A4 Formal** | Relatório executivo completo diagramado para impressão e assinaturas. |
+| **JSON Completo** | Backup integral de tarefas, calendário, baseline e metadados. |
+| **PNG em Alta Resolução** | Captura visual do cronograma para apresentações executivas. |
+
+---
+
+## 📁 Estrutura do Repositório
 
 ```
-RoadTask-Studio/
-├── editor_cronograma.html        # Executável único standalone 100% offline
-├── docker-compose.yml            # Orquestração do Backend Python
-├── package.json                  # Dependências do frontend React + Vite
-├── vite.config.ts                # Configuração do bundler e singlefile plugin
-├── tailwind.config.js            # Design tokens (Obsidian, Safira, Carmim, Ouro)
-├── tsconfig.json                 # Configuração TypeScript
+EditorGantt/
+├── editor_cronograma.html        # Executável autônomo standalone 100% offline (~468 kB)
+├── docker-compose.yml            # Orquestração do Backend Python FastAPI
+├── package.json                  # Dependências React 18, Vite e Tailwind CSS
+├── vite.config.ts                # Configuração do Vite com vite-plugin-singlefile
+├── tailwind.config.js            # Design tokens e plugin de injeção CSS dinâmico
+├── tsconfig.json                 # Tipagem estrita TypeScript
 │
-├── api/                          # Serverless entrypoint
-│   ├── index.py                  # Adaptador ASGI para Vercel Python Runtime
-│   └── requirements.txt          # Dependências Python para o Vercel Runtime
+├── api/                          # Entrada serverless Vercel
+│   ├── index.py                  # Adaptador Python para Vercel Runtime
+│   └── requirements.txt          # Dependências mínimas de deploy
 │
 ├── backend/                      # Backend Python FastAPI
-│   ├── Dockerfile                # Imagem Docker Python 3.11-slim
-│   ├── requirements.txt          # Dependências (FastAPI, Supabase, Uvicorn, Pydantic)
-│   ├── main.py                   # Rotas REST da API (/api/projects, /api/health)
-│   ├── models.py                 # Schemas Pydantic (Project, Task, Dependency)
-│   └── database.py               # Conexão Supabase JSONB com fallback JSON local
+│   ├── main.py                   # Endpoints REST (/api/projects, /api/health)
+│   ├── models.py                 # Schemas Pydantic (Task, Project, Calendar)
+│   ├── database.py               # Persistência Supabase JSONB / Fallback local
+│   └── requirements.txt          # Dependências Python
 │
-└── src/                          # Código-fonte Frontend (React 18 + TS)
-    ├── main.tsx                  # Ponto de entrada React
-    ├── App.tsx                   # Componente raiz da aplicação
-    ├── index.css                 # Estilos globais e fontes executivas
+├── docs/                         # Documentação e especificações
+│   ├── doc.md                    # Documentação técnica e arquitetural consolidada
+│   ├── tasks.md                  # Rastreamento das fases de desenvolvimento (Fases 1 a 35)
+│   ├── Gantt/                    # Especificações de cronogramas e diagramas
+│   └── Scratch/                  # Esboços Excalidraw e Obsidian Canvases
+│
+├── walkthrough/                  # Histórico de walkthroughs das implementações (001 a 017)
+│
+└── src/                          # Código-fonte da aplicação React
+    ├── main.tsx                  # Ponto de entrada
+    ├── App.tsx                   # Roteamento de visualizações e relatórios
+    ├── index.css                 # Estilos globais e regras de impressão (@media print)
     ├── types/
-    │   └── gantt.ts              # Interfaces TypeScript estritas
+    │   └── gantt.ts              # Interfaces de domínio (Task, Project, SubTask, RAG)
     ├── engine/
-    │   ├── calendar.ts           # Cálculo de dias úteis e feriados brasileiros
-    │   ├── dependencies.ts       # Validação de dependências e ordenação topológica
-    │   ├── criticalPath.ts       # Algoritmo CPM e cálculo de folga total
-    │   └── mermaidEngine.ts      # Parser e gerador bidirecional de Mermaid
+    │   ├── calendar.ts           # Dias úteis, feriados nacionais e cálculos de datas
+    │   ├── dependencies.ts       # Ordenação topológica, propagação FS/SS/FF e ciclos
+    │   ├── criticalPath.ts       # Algoritmo CPM e folga total
+    │   ├── mermaidEngine.ts      # Parser e exportador Mermaid Markdown
+    │   └── scrumSvgEngine.ts     # Gerador vetorial SVG dinâmico do diagrama Scrum
     ├── services/
-    │   ├── apiClient.ts          # Cliente HTTP para a API Python / Vercel
-    │   └── windowsFileSystem.ts  # File System Access API para salvar no Windows (Ctrl+S)
+    │   ├── apiClient.ts          # Comunicação com a API FastAPI / Supabase
+    │   └── windowsFileSystem.ts  # File System Access API do Windows (Ctrl+S)
     ├── context/
-    │   ├── GanttContext.tsx      # Estado global, histórico Undo/Redo e atalhos
-    │   └── GuidedAccessContext.tsx # Contexto de acessibilidade e tutoriais
+    │   ├── GanttContext.tsx      # Gerenciamento de estado global, Undo/Redo e ações
+    │   └── GuidedAccessContext.tsx # Sistema de Acesso Guiado com micro-animações
     ├── data/
-    │   ├── blueprints.ts         # Modelos pré-configurados (SGFrotas, Cloud, Ágil)
-    │   └── holidaysBR.ts         # Base de feriados móveis e nacionais
+    │   ├── blueprints.ts         # Catálogo de modelos pré-configurados (Frotas V2, etc.)
+    │   └── holidaysBR.ts         # Base de feriados nacionais brasileiros
     └── components/
         ├── brand/
-        │   └── RoadTaskLogo.tsx  # Logotipo vetorial oficial
+        │   └── RoadTaskLogo.tsx  # Logotipo oficial animado em SVG
         ├── layout/
-        │   ├── ExecutiveHeader.tsx   # Topbar executiva, status de arquivo e zoom
-        │   ├── ExecutiveKpiBar.tsx   # Painel de métricas C-Level
-        │   ├── TapAndBuildToolbar.tsx# Barra de inserção tátil de tarefas
-        │   ├── ProjectMenu.tsx       # Menu de gerenciamento de projetos
-        │   └── MobileBottomNav.tsx   # Barra de navegação móvel
+        │   ├── ExecutiveHeader.tsx    # Cabeçalho executivo em linha única
+        │   ├── ExecutiveKpiBar.tsx    # Scorecards executivos C-Level
+        │   ├── TapAndBuildToolbar.tsx # Construtor tátil Tap-and-Build
+        │   ├── ProjectMenu.tsx        # Menu de projetos e nuvem
+        │   └── ViewSelectorDropdown.tsx# Seletor dinâmico de visualizações
+        ├── gantt/
+        │   └── GanttTimelineView.tsx  # Linha do tempo em 3 camadas com Swimlanes
         ├── views/
-        │   ├── GanttTimelineView.tsx # Renderizador SVG com raias de fases (Swimlanes)
-        │   ├── TaskDeckView.tsx      # Visualização móvel em cards
-        │   └── TaskTableView.tsx     # Visualização tabular WBS
-        └── modals/
-            ├── StorageModal.tsx      # Central de Armazenamento (Windows & Nuvem)
-            ├── TaskDrawer.tsx        # Painel lateral de edição de tarefas
-            ├── ExportModal.tsx       # Exportação Mermaid, JSON e Impressão
-            └── BlueprintSelectorModal.tsx # Catálogo de templates
+        │   ├── ScrumView.tsx          # Visão Scrum (Cards Ágeis + Diagrama SVG)
+        │   ├── TaskTableView.tsx      # Tabela EAP/WBS detalhada
+        │   └── TaskDeckView.tsx       # Visão mobile em cards táteis
+        ├── modals/
+        │   ├── EpicModal.tsx          # Modal de criação, edição e exclusão de Épicos
+        │   ├── TaskDrawer.tsx         # Gaveta ágil de edição de histórias e tarefas
+        │   ├── ExportModal.tsx        # Central de exportação (Mermaid, SVG, PDF, JSON)
+        │   ├── StorageModal.tsx       # Gerenciamento de pasta local e nuvem
+        │   └── BlueprintSelectorModal.tsx # Catálogo de templates executivos
+        └── print/
+            └── ExecutivePrintReport.tsx # Relatório formal A4 Paisagem para impressão/PDF
 ```
+
+---
+
+## 📚 Modelos Estratégicos Inclusos (Blueprints)
+
+1. **Gestão de Frotas V2 (Scrum Completo - SGFrotas 2026):**
+   - 7 Sprints (Sprint 0 a 6) cobrindo desde a imersão presencial e fundação tecnológica (FastAPI, PostgreSQL, React) até o piloto com 50 carros em campo e homologação do PWA offline.
+   - 3 Épicos estruturados: *Imersão & Fundação Técnica*, *Fase 1: Gestão de Frotas (Gestor)* e *Fase 2: Gestão do Técnico (Campo)*.
+   - 3 Marcos de entrega formais: M1 (Setup Base), M2 (Módulo Gestor em Produção) e M3 (Go-Live Geral).
+2. **Gestão de Frotas (Scrum por Personas):** Divisão por Personas de Negócio (Gestor de Frotas vs. Técnico de Campo).
+3. **Engenharia de Software Ágil:** Setup, sprint backlog, refatoração e cutover de produção.
+4. **Infraestrutura / Cloud Cutover:** Planejamento crítico de migração de datacenters com CPM acentuado.
+5. **Roadmap Estratégico Q1-Q4:** Visão macro anual para conselhos executivos e diretoria.
+6. **Novo Projeto em Branco:** Inicialização limpa por padrão (ou forçada via URL com `?new`, `?blank` ou `?novo`).
+
+---
+
+## 📖 Documentação Adicional
+
+- [Documentação Técnica Detalhada](docs/doc.md) — Visão de arquitetura, tokens CSS e fluxos de engenharia.
+- [Histórico de Tarefas & Fases](docs/tasks.md) — Rastreamento detalhado das Fases 1 a 35.
+- [Especificação Scrum do SGFrotas V2](docs/Gantt/FrotasV2_Scrum.md) — Critérios de aceite, metas de sprint e personas de negócio.
+- [Walkthroughs de Implementação](walkthrough/) — Guias ilustrados passo a passo de todas as evoluções do estúdio.
 
 ---
 
 ## 📄 Licença
 
-Projeto desenvolvido para gestão executiva de roadmaps, cronogramas integrados de engenharia e implantações de soluções de tecnologia.
+Projeto desenvolvido para planejamento, gestão executiva e modelagem ágil de cronogramas corporativos e projetos de engenharia de software de alta complexidade.
